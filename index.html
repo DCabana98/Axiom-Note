@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - Prototipo v1.0</title>
+    <title>Axiom Note - Prototipo v0.2</title>
     <style>
         /* Estilos Generales */
         body {
@@ -13,8 +13,6 @@
             margin: 0;
             padding: 20px;
         }
-
-        /* Contenedor Principal */
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -23,15 +21,12 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-
         h1 {
             text-align: center;
             color: #2c3e50;
             margin-bottom: 30px;
             font-size: 2em;
         }
-
-        /* Sección de Datos Básicos (Grid) */
         .datos-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -40,19 +35,15 @@
             border-bottom: 1px solid #e0e0e0;
             padding-bottom: 30px;
         }
-
-        /* Grupos de Formulario (Patrones) */
         .pattern-group {
             margin-bottom: 25px;
         }
-
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
             color: #34495e;
         }
-
         input[type="text"],
         input[type="number"],
         textarea {
@@ -60,11 +51,10 @@
             padding: 12px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+            box-sizing: border-box;
             font-size: 1em;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-
         input[type="text"]:focus,
         input[type="number"]:focus,
         textarea:focus {
@@ -72,13 +62,10 @@
             border-color: #3498db;
             box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
         }
-
         textarea {
             min-height: 80px;
             resize: vertical;
         }
-
-        /* Botón de Acción */
         #generate-btn {
             width: 100%;
             padding: 15px;
@@ -92,27 +79,48 @@
             transition: background 0.3s, transform 0.1s;
             margin-top: 20px;
         }
-
         #generate-btn:hover {
             background: linear-gradient(45deg, #2980b9, #3498db);
             transform: translateY(-2px);
         }
-        
         #generate-btn:disabled {
             background: #bdc3c7;
             cursor: not-allowed;
         }
-
-        /* Área de Resultado */
         .result-container {
             margin-top: 40px;
+            position: relative;
         }
-
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .result-header h2 {
+            margin: 0;
+        }
+        .utility-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .utility-btn {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .utility-btn:hover {
+            background-color: #dfe6e9;
+        }
         #result-text {
             background-color: #ecf0f1;
             min-height: 200px;
         }
-
     </style>
 </head>
 <body>
@@ -121,65 +129,32 @@
         <h1>Axiom Note</h1>
         <form id="note-form">
             <div class="datos-grid">
-                <div>
-                    <label for="nombre">Nombre</label>
-                    <input type="text" id="nombre">
-                </div>
-                <div>
-                    <label for="edad">Edad</label>
-                    <input type="number" id="edad">
-                </div>
-                 <div>
-                    <label for="sexo">Sexo</label>
-                    <input type="text" id="sexo">
-                </div>
-                <div>
-                    <label for="alergias">Alergias</label>
-                    <input type="text" id="alergias">
-                </div>
-                <div>
-                    <label for="motivo">Motivo consulta/ingreso</label>
-                    <input type="text" id="motivo">
-                </div>
+                <div><label for="nombre">Nombre</label><input type="text" id="nombre"></div>
+                <div><label for="edad">Edad</label><input type="number" id="edad"></div>
+                <div><label for="sexo">Sexo</label><input type="text" id="sexo"></div>
+                <div><label for="alergias">Alergias</label><input type="text" id="alergias"></div>
+                <div><label for="motivo">Motivo consulta/ingreso</label><input type="text" id="motivo"></div>
             </div>
 
-            <div class="pattern-group">
-                <label for="estado-general">① Estado general / Neurológico</label>
-                <textarea id="estado-general"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="signos-vitales">② Signos vitales / Hemodinámica</label>
-                <textarea id="signos-vitales"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="dolor">③ Dolor</label>
-                <textarea id="dolor"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="movilidad">④ Movilidad / Actividad</label>
-                <textarea id="movilidad"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="piel">⑤ Estado Piel / Mucosas</label>
-                <textarea id="piel"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="eliminacion">⑥ Eliminación</label>
-                <textarea id="eliminacion"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="tratamiento">⑦ Tratamiento actual</label>
-                <textarea id="tratamiento"></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="plan">⑧ Plan / Pruebas pendientes</label>
-                <textarea id="plan"></textarea>
-            </div>
+            <div class="pattern-group"><label for="estado-general">① Estado general / Neurológico</label><textarea id="estado-general"></textarea></div>
+            <div class="pattern-group"><label for="signos-vitales">② Signos vitales / Hemodinámica</label><textarea id="signos-vitales"></textarea></div>
+            <div class="pattern-group"><label for="dolor">③ Dolor</label><textarea id="dolor"></textarea></div>
+            <div class="pattern-group"><label for="movilidad">④ Movilidad / Actividad</label><textarea id="movilidad"></textarea></div>
+            <div class="pattern-group"><label for="piel">⑤ Estado Piel / Mucosas</label><textarea id="piel"></textarea></div>
+            <div class="pattern-group"><label for="eliminacion">⑥ Eliminación</label><textarea id="eliminacion"></textarea></div>
+            <div class="pattern-group"><label for="tratamiento">⑦ Tratamiento actual</label><textarea id="tratamiento"></textarea></div>
+            <div class="pattern-group"><label for="plan">⑧ Plan / Pruebas pendientes</label><textarea id="plan"></textarea></div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
             <div class="result-container">
-                <h2>Nota Generada:</h2>
+                <div class="result-header">
+                    <h2>Nota Generada:</h2>
+                    <div class="utility-buttons">
+                        <button type="button" id="copy-btn" class="utility-btn">Copiar Texto</button>
+                        <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
+                    </div>
+                </div>
                 <textarea id="result-text" readonly placeholder="Aquí aparecerá el texto generado por la IA..."></textarea>
             </div>
         </form>
@@ -187,20 +162,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Este código se ejecuta solo cuando toda la página HTML se ha cargado.
+
+            // --- Parte 1: Identificar elementos de la página ---
             const generateBtn = document.getElementById('generate-btn');
             const resultText = document.getElementById('result-text');
+            const noteForm = document.getElementById('note-form');
+            
+            // ##### NUEVO: Identificar los nuevos botones #####
+            const copyBtn = document.getElementById('copy-btn');
+            const clearBtn = document.getElementById('clear-btn');
 
-            if (!generateBtn) {
-                console.error("Error crítico: No se ha podido encontrar el botón.");
+            if (!generateBtn || !copyBtn || !clearBtn) {
+                console.error("Error crítico: No se ha podido encontrar uno de los botones.");
                 return;
             }
 
+            // --- Parte 2: La Función Principal para generar la nota ---
             async function generateNote() {
+                // ... (El código para generar la nota es el mismo que ya teníamos) ...
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
                 resultText.value = "Enviando al asistente seguro... Por favor, espera.";
 
-                // Recogemos los datos y construimos el prompt (igual que antes)
                 const nombre = document.getElementById('nombre').value;
                 const edad = document.getElementById('edad').value;
                 const sexo = document.getElementById('sexo').value;
@@ -215,7 +199,7 @@
                 const tratamiento = document.getElementById('tratamiento').value;
                 const plan = document.getElementById('plan').value;
 
-                let prompt = `Eres un asistente médico experto...`; // El prompt largo es el mismo
+                let prompt = `Eres un asistente médico experto en redactar notas de evolución claras y profesionales. A partir de los siguientes datos esquemáticos, genera una nota de evolución completa y bien redactada en español:\n\n`;
                 prompt += `--- DATOS DEL PACIENTE ---\n`;
                 if (nombre) prompt += `- Nombre: ${nombre}\n`;
                 if (edad) prompt += `- Edad: ${edad} años\n`;
@@ -233,7 +217,6 @@
                 if (plan) prompt += `8. Plan / Pruebas Pendientes: ${plan}\n`;
                 
                 try {
-                    // La URL ahora apunta a nuestro intermediario
                     const response = await fetch('/.netlify/functions/generate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -257,9 +240,43 @@
                 }
             }
 
+            // ##### NUEVO: Lógica para los botones de copiar y limpiar #####
+            
+            // Función para copiar el texto
+            function copyResult() {
+                if (!resultText.value) return; // No hacer nada si no hay texto
+                
+                navigator.clipboard.writeText(resultText.value)
+                    .then(() => {
+                        // Feedback visual para el usuario
+                        copyBtn.textContent = "¡Copiado!";
+                        setTimeout(() => {
+                            copyBtn.textContent = "Copiar Texto";
+                        }, 2000); // Vuelve al texto original después de 2 segundos
+                    })
+                    .catch(err => {
+                        console.error("Error al copiar texto: ", err);
+                    });
+            }
+            
+            // Función para limpiar el formulario
+            function clearForm() {
+                // Selecciona todos los inputs y textareas dentro del formulario
+                const fields = noteForm.querySelectorAll('input, textarea');
+                // Recorre cada campo y lo vacía
+                fields.forEach(field => {
+                    // No borramos el resultado, solo los campos de entrada
+                    if (field.id !== 'result-text') {
+                        field.value = '';
+                    }
+                });
+            }
+
+            // --- Parte 4: Asignar las funciones a los botones ---
             generateBtn.addEventListener('click', generateNote);
+            copyBtn.addEventListener('click', copyResult);
+            clearBtn.addEventListener('click', clearForm);
         });
-    </script>
     </script>
 
 </body>
