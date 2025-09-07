@@ -3,47 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - Prototipo v0.4</title>
+    <title>Axiom Note - Prototipo v0.5</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* (Los estilos generales son los mismos) */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2em; }
-        .datos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0; padding-bottom: 30px; }
-        .pattern-group { margin-bottom: 25px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; }
-        input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1em; transition: border-color 0.3s, box-shadow 0.3s; }
-        input[type="text"]:focus, input[type="number"]:textarea:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
-        textarea { min-height: 80px; resize: vertical; }
-        #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.1s; margin-top: 20px; }
-        #generate-btn:hover { background: linear-gradient(45deg, #2980b9, #3498db); transform: translateY(-2px); }
-        #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .result-container { margin-top: 40px; position: relative; }
-        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .result-header h2 { margin: 0; }
-        .utility-buttons { display: flex; gap: 10px; }
-        .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; }
-        .utility-btn:hover { background-color: #dfe6e9; }
-        
-        /* ##### NUEVO: Estilos para el área de resultado (ahora es un div) ##### */
-        #result-text {
-            background-color: #ecf0f1;
-            min-height: 200px;
+        /* Estilos Generales */
+        body {
+            /* ##### CAMBIO DE FUENTE A TIMES NEW ROMAN ##### */
+            font-family: "Times New Roman", Times, serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .datos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 30px;
+        }
+
+        .pattern-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
             padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            font-family: inherit; /* Hereda la fuente del body */
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        #generate-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            font-family: inherit;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+            margin-top: 20px;
+        }
+
+        #generate-btn:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+        }
+        
+        #generate-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .result-header h2 {
+            margin: 0;
+        }
+
+        .utility-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .utility-btn {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            font-family: inherit;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .utility-btn:hover {
+            background-color: #dfe6e9;
+        }
+        
+        #result-text {
+            background-color: #f9fafb;
+            min-height: 200px;
+            padding: 15px 20px;
             border-radius: 8px;
             border: 1px solid #ccc;
-            white-space: pre-wrap; /* Mantiene los saltos de línea */
+            white-space: pre-wrap;
             line-height: 1.6;
+            text-align: left;
         }
-        #result-text strong {
-            color: #2c3e50; /* Hace las negritas un poco más oscuras */
+        
+        /* ##### CÓDIGO AÑADIDO PARA COMPACTAR EL TEXTO ##### */
+        #result-text p,
+        #result-text ul,
+        #result-text h1,
+        #result-text h2,
+        #result-text h3,
+        #result-text h4,
+        #result-text h5 {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
         }
+        #result-text ul {
+             padding-left: 20px;
+        }
+
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Axiom Note</h1>
         <form id="note-form">
@@ -90,7 +220,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.getElementById('generate-btn');
-            // ##### CAMBIO: El área de resultado ahora es un div #####
             const resultText = document.getElementById('result-text');
             const noteForm = document.getElementById('note-form');
             const copyBtn = document.getElementById('copy-btn');
@@ -104,7 +233,6 @@
             async function generateNote() {
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
-                // ##### CAMBIO: Mostramos el mensaje de carga dentro del div #####
                 resultText.innerHTML = "Enviando al asistente clínico... Por favor, espera.";
 
                 const incomingData = {
@@ -139,8 +267,6 @@
                     }
 
                     const data = await response.json();
-                    
-                    // ##### CAMBIO CLAVE: Usamos la librería marked para convertir el texto a HTML #####
                     resultText.innerHTML = marked.parse(data.text);
 
                 } catch (error) {
@@ -153,7 +279,6 @@
             }
             
             function copyResult() {
-                // ##### CAMBIO: Copiamos el 'innerText' del div, que es el texto sin formato HTML #####
                 if (!resultText.innerText) return; 
                 navigator.clipboard.writeText(resultText.innerText)
                     .then(() => {
@@ -174,7 +299,6 @@
                         }
                     }
                 });
-                // Limpiamos también el resultado
                 resultText.innerHTML = '';
             }
 
