@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - Prototipo v0.5</title>
+    <title>Axiom Note - Prototipo v0.6</title>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         /* Estilos Generales */
         body {
-            /* ##### CAMBIO DE FUENTE A TIMES NEW ROMAN ##### */
             font-family: "Times New Roman", Times, serif;
             background-color: #f4f7f9;
             color: #333;
@@ -64,7 +63,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 1em;
-            font-family: inherit; /* Hereda la fuente del body */
+            font-family: inherit;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
 
@@ -144,6 +143,7 @@
             background-color: #dfe6e9;
         }
         
+        /* ##### AJUSTES FINALES DE ESTILO PARA EL INFORME ##### */
         #result-text {
             background-color: #f9fafb;
             min-height: 200px;
@@ -151,11 +151,12 @@
             border-radius: 8px;
             border: 1px solid #ccc;
             white-space: pre-wrap;
-            line-height: 1.6;
             text-align: left;
+            /* CAMBIO 1: Reducimos el interlineado general */
+            line-height: 1.4; 
         }
         
-        /* ##### CÓDIGO AÑADIDO PARA COMPACTAR EL TEXTO ##### */
+        /* CAMBIO 2: Reducimos drásticamente los márgenes de párrafos, listas y títulos */
         #result-text p,
         #result-text ul,
         #result-text h1,
@@ -163,8 +164,8 @@
         #result-text h3,
         #result-text h4,
         #result-text h5 {
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
+            margin-top: 0.3em;
+            margin-bottom: 0.3em;
         }
         #result-text ul {
              padding-left: 20px;
@@ -218,6 +219,7 @@
     </div>
 
     <script>
+        // El JavaScript no necesita cambios, por lo que es el mismo que ya tenías
         document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.getElementById('generate-btn');
             const resultText = document.getElementById('result-text');
