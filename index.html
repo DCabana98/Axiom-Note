@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Axiom Note - Prototipo v0.8</title>
     <style>
-        /* Estilos (iguales que antes, omitidos por brevedad) */
+        /* Estilos (iguales que antes) */
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2em; }
@@ -23,8 +23,28 @@
         .result-header h2 { margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; font-family: inherit; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; }
         .utility-btn:hover { background-color: #dfe6e9; }
-        #result-text, #recommendations-text { background-color: #f9fafb; min-height: 200px; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; white-space: pre-wrap; line-height: 1.5; font-size: 1em; font-family: inherit; resize: vertical; box-sizing: border-box; }
-        #recommendations-text { min-height: 120px; margin-top: 15px; }
+
+        /* ##### CAMBIO: Aumentamos la altura de los cuadros de texto ##### */
+        #result-text, #recommendations-text { 
+            background-color: #f9fafb; 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid #ccc; 
+            white-space: pre-wrap; 
+            line-height: 1.5; 
+            font-size: 1em; 
+            font-family: inherit; 
+            resize: vertical; 
+            box-sizing: border-box; 
+        }
+        #result-text { 
+            min-height: 300px; /* Antes 200px */
+        }
+        #recommendations-text { 
+            min-height: 180px; /* Antes 120px */
+            margin-top: 15px; 
+        }
     </style>
 </head>
 <body>
@@ -39,7 +59,7 @@
                 <div><label for="nombre">Nombre</label><input type="text" id="nombre"></div>
                 <div><label for="edad">Edad</label><input type="number" id="edad"></div>
                 <div><label for="sexo">Sexo</label><select id="sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
-                <div><label for="alergias">Alergias Conocidas</label><input type="text" id="alergias" placeholder="Ej: Penicilina, AINEs..."></div>
+                <div><label for="alergias">Alogias Conocidas</label><input type="text" id="alergias" placeholder="Ej: Penicilina, AINEs..."></div>
                 <div><label for="motivo">Motivo consulta/ingreso</label><input type="text" id="motivo" placeholder="Ej: Dolor torácico, fiebre..."></div>
             </div>
             <div class="pattern-group"><label for="drogas">Consumo de Tóxicos / Drogas</label><textarea id="drogas" placeholder="Ej: Consumo ocasional de cannabis, fumador de 10 cig/día..."></textarea></div>
@@ -75,9 +95,9 @@
     </div>
 
     <script>
+        // El JavaScript no necesita cambios
         document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.getElementById('generate-btn');
-            // ##### CAMBIO: Identificamos los dos cuadros de texto y sus botones #####
             const resultText = document.getElementById('result-text');
             const recommendationsText = document.getElementById('recommendations-text');
             const noteForm = document.getElementById('note-form');
@@ -123,7 +143,6 @@
                     }
 
                     const data = await response.json();
-                    // ##### CAMBIO: Ponemos cada parte del texto en su cuadro correspondiente #####
                     resultText.value = data.report;
                     recommendationsText.value = data.recommendations;
 
@@ -137,7 +156,6 @@
                 }
             }
             
-            // ##### CAMBIO: Funciones de copia para cada botón #####
             function copyToClipboard(element, button) {
                 if (!element.value) return; 
                 navigator.clipboard.writeText(element.value)
