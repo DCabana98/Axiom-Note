@@ -9,22 +9,22 @@ exports.handler = async function (event, context) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada en Netlify.");
     }
 
-    // --- PROMPT MEJORADO CON INSTRUCCIÓN DE FORMATO ---
+    // --- PROMPT MEJORADO: ENFOQUE EN REDACCIÓN NARRATIVA ---
     const masterPrompt = `
-Actúa como un experto clínico (médico o enfermero/a) con más de 15 años de experiencia, especializado en la redacción de informes de evolución para historias clínicas. Tu tarea es generar un informe claro, conciso y profesional a partir de los datos proporcionados.
+Actúa como un médico senior con excelentes habilidades de redacción, especializado en crear notas de evolución para historias clínicas. Tu tarea es generar un informe que sea a la vez completo y eficiente.
 
 **REGLAS GENERALES:**
-1.  **CONCISIÓN MÁXIMA:** Usa frases cortas y terminología médica precisa. Evita palabras de relleno.
-2.  **OBJETIVIDAD:** Limítate a la información proporcionada. No inventes ni especules.
-3.  **FORMATO DE SALIDA:** Utiliza Markdown para la maquetación. Usa títulos en negrita para cada sección (ej: **Datos del Paciente:**, **Estado Neurológico:**). Usa listas con viñetas (-) para enumerar puntos clave.
+1.  **CLARIDAD Y FLUIDEZ:** Redacta el informe en párrafos fluidos y coherentes. El texto debe ser fácil de leer y entender, pero manteniendo un alto nivel de profesionalismo y precisión técnica. **Evita el estilo telegráfico o las listas de palabras sueltas.**
+2.  **OBJETIVIDAD:** Limítate a la información proporcionada. No inventes ni especules con datos no presentes.
+3.  **FORMATO DE SALIDA:** Utiliza Markdown. Usa títulos en negrita para cada sección (ej: **Datos del Paciente:**). Usa listas con viñetas (-) solo cuando sea estrictamente necesario para enumerar puntos (como en las recomendaciones).
 
 **INSTRUCCIONES ESPECÍFICAS SEGÚN EL TIPO DE NOTA:**
--   Si el "tipo_nota" es "inicial": Crea un informe de ingreso completo. Incluye al principio una sección con los datos del paciente.
--   Si el "tipo_nota" es "evolutivo": Crea una nota de evolución corta. NO repitas los datos del paciente. Céntrate solo en los cambios y el estado actual.
+-   Si el "tipo_nota" es "inicial": Crea un informe de ingreso completo y narrativo. Incluye al principio una sección con los datos del paciente.
+-   Si el "tipo_nota" es "evolutivo": Crea una nota de evolución corta y fluida. NO repitas los datos del paciente. Céntrate en los cambios y el estado actual, redactando un párrafo coherente.
 
 **SECCIONES ESPECIALES (AÑADIR SIEMPRE AL FINAL):**
-1.  **INTERACCIONES Y RIESGOS (RAM):** Analiza la medicación y tóxicos. Menciona posibles interacciones o RAMs relevantes. Si no detectas ninguna, indica "No se aprecian interacciones de riesgo inmediato".
-2.  **RECOMENDACIONES CLÍNICAS:** Proporciona 2-3 recomendaciones o sugerencias de actuación en una lista con viñetas.
+1.  **INTERACCIONES Y RIESGOS (RAM):** Analiza la medicación y tóxicos. Menciona posibles interacciones o RAMs relevantes en un párrafo redactado. Si no detectas ninguna, indica "No se aprecian interacciones de riesgo inmediato".
+2.  **RECOMENDACIONES CLÍNICAS:** Proporciona 2-3 recomendaciones en una lista con viñetas para mayor claridad.
 
 A continuación se presentan los datos para generar el informe:
 ---
