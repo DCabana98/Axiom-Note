@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - Prototipo v0.3</title>
+    <title>Axiom Note - Prototipo v0.4</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        /* Estilos (sin cambios, omitidos por brevedad) */
+        /* (Los estilos generales son los mismos) */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2em; }
@@ -13,7 +16,7 @@
         .pattern-group { margin-bottom: 25px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; }
         input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1em; transition: border-color 0.3s, box-shadow 0.3s; }
-        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
+        input[type="text"]:focus, input[type="number"]:textarea:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.5); }
         textarea { min-height: 80px; resize: vertical; }
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.1s; margin-top: 20px; }
         #generate-btn:hover { background: linear-gradient(45deg, #2980b9, #3498db); transform: translateY(-2px); }
@@ -24,7 +27,20 @@
         .utility-buttons { display: flex; gap: 10px; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; }
         .utility-btn:hover { background-color: #dfe6e9; }
-        #result-text { background-color: #ecf0f1; min-height: 200px; }
+        
+        /* ##### NUEVO: Estilos para el área de resultado (ahora es un div) ##### */
+        #result-text {
+            background-color: #ecf0f1;
+            min-height: 200px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap; /* Mantiene los saltos de línea */
+            line-height: 1.6;
+        }
+        #result-text strong {
+            color: #2c3e50; /* Hace las negritas un poco más oscuras */
+        }
     </style>
 </head>
 <body>
@@ -38,7 +54,6 @@
                     <option value="evolutivo">Nota de Evolución / Actualización</option>
                 </select>
             </div>
-
             <div class="datos-grid">
                 <div><label for="nombre">Nombre</label><input type="text" id="nombre"></div>
                 <div><label for="edad">Edad</label><input type="number" id="edad"></div>
@@ -46,16 +61,8 @@
                 <div><label for="alergias">Alergias Conocidas</label><input type="text" id="alergias"></div>
                 <div><label for="motivo">Motivo consulta/ingreso</label><input type="text" id="motivo"></div>
             </div>
-
-            <div class="pattern-group">
-                <label for="drogas">Consumo de Tóxicos / Drogas</label>
-                <textarea id="drogas" placeholder="Ej: Consumo ocasional de cannabis, fumador de 10 cig/día..."></textarea>
-            </div>
-            <div class="pattern-group">
-                <label for="medicacion-cronica">Medicación Crónica / Domiciliaria</label>
-                <textarea id="medicacion-cronica" placeholder="Ej: Enalapril 20mg/día, Paracetamol 1g si precisa..."></textarea>
-            </div>
-
+            <div class="pattern-group"><label for="drogas">Consumo de Tóxicos / Drogas</label><textarea id="drogas" placeholder="Ej: Consumo ocasional de cannabis, fumador de 10 cig/día..."></textarea></div>
+            <div class="pattern-group"><label for="medicacion-cronica">Medicación Crónica / Domiciliaria</label><textarea id="medicacion-cronica" placeholder="Ej: Enalapril 20mg/día, Paracetamol 1g si precisa..."></textarea></div>
             <div class="pattern-group"><label for="estado-general">① Estado general / Neurológico</label><textarea id="estado-general"></textarea></div>
             <div class="pattern-group"><label for="signos-vitales">② Signos vitales / Hemodinámica</label><textarea id="signos-vitales"></textarea></div>
             <div class="pattern-group"><label for="dolor">③ Dolor</label><textarea id="dolor"></textarea></div>
@@ -75,7 +82,7 @@
                         <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
                     </div>
                 </div>
-                <textarea id="result-text" readonly placeholder="Aquí aparecerá el texto generado por la IA..."></textarea>
+                <div id="result-text" placeholder="Aquí aparecerá el texto generado por la IA..."></div>
             </div>
         </form>
     </div>
@@ -83,6 +90,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.getElementById('generate-btn');
+            // ##### CAMBIO: El área de resultado ahora es un div #####
             const resultText = document.getElementById('result-text');
             const noteForm = document.getElementById('note-form');
             const copyBtn = document.getElementById('copy-btn');
@@ -96,9 +104,9 @@
             async function generateNote() {
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
-                resultText.value = "Enviando al asistente clínico... Por favor, espera.";
+                // ##### CAMBIO: Mostramos el mensaje de carga dentro del div #####
+                resultText.innerHTML = "Enviando al asistente clínico... Por favor, espera.";
 
-                // Creamos un objeto para enviar todos los datos juntos
                 const incomingData = {
                     tipo_nota: document.getElementById('tipo-nota').value,
                     nombre: document.getElementById('nombre').value,
@@ -131,11 +139,13 @@
                     }
 
                     const data = await response.json();
-                    resultText.value = data.text;
+                    
+                    // ##### CAMBIO CLAVE: Usamos la librería marked para convertir el texto a HTML #####
+                    resultText.innerHTML = marked.parse(data.text);
 
                 } catch (error) {
                     console.error("Error:", error);
-                    resultText.value = `Error: ${error.message}`;
+                    resultText.textContent = `Error: ${error.message}`;
                 } finally {
                     generateBtn.disabled = false;
                     generateBtn.textContent = "Generar Texto";
@@ -143,8 +153,9 @@
             }
             
             function copyResult() {
-                if (!resultText.value) return; 
-                navigator.clipboard.writeText(resultText.value)
+                // ##### CAMBIO: Copiamos el 'innerText' del div, que es el texto sin formato HTML #####
+                if (!resultText.innerText) return; 
+                navigator.clipboard.writeText(resultText.innerText)
                     .then(() => {
                         copyBtn.textContent = "¡Copiado!";
                         setTimeout(() => { copyBtn.textContent = "Copiar Texto"; }, 2000);
@@ -157,12 +168,14 @@
                 fields.forEach(field => {
                     if (field.id !== 'result-text') {
                         if (field.tagName === 'SELECT') {
-                            field.selectedIndex = 0; // Resetea el selector al primer elemento
+                            field.selectedIndex = 0;
                         } else {
                             field.value = '';
                         }
                     }
                 });
+                // Limpiamos también el resultado
+                resultText.innerHTML = '';
             }
 
             generateBtn.addEventListener('click', generateNote);
