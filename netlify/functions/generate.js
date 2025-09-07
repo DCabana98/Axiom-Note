@@ -7,7 +7,7 @@ exports.handler = async function (event, context) {
   try {
     const { prompt } = JSON.parse(event.body);
     const apiKey = process.env.GOOGLE_API_KEY;
-    const modelName = "gemini-pro";
+    const modelName = "gemini-1.5-flash-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
     // AÑADIDO PARA DEPURAR: Confirmar que recibimos el prompt y la API Key
