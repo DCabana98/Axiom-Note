@@ -14,7 +14,7 @@
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; }
         input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1em; font-family: inherit; }
         textarea { min-height: 80px; resize: vertical; }
-        #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s ease; }
+        #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; transition: background-color 0.3s ease; }
         #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -31,7 +31,7 @@
     <div class="container">
         <h1>Axiom Note</h1>
         <form id="note-form">
-             <div class="form-section">
+            <div class="form-section">
                 <label for="contexto-informe" style="font-size: 1.2em;">Contexto del Informe</label>
                 <select id="contexto-informe">
                     <option value="urgencias">Urgencias (Primer Contacto)</option>
@@ -39,17 +39,66 @@
                     <option value="evolutivo">Evolutivo en Planta</option>
                 </select>
             </div>
-            <div id="urgencias-fields"> ... </div>
-            <div id="planta-fields" class="hidden"> ... </div>
-            <div id="evolutivo-fields" class="hidden"> ... </div>
+
+            <!-- FORMULARIO DE URGENCIAS -->
+            <div id="urgencias-fields">
+                 <div class="form-section datos-grid">
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
+                    <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
+                    <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
+                    <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                    <div id="urg-embarazo-container" class="hidden"><label for="urg-embarazo">Embarazo</label><select id="urg-embarazo"><option value="No">No</option><option value="Sí">Sí</option><option value="No sabe">No sabe</option></select></div>
+                    <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
+                </div>
+                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><textarea id="urg-motivo" placeholder="Dolor torácico opresivo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-triaje">Constantes y Nivel de Triaje</label><textarea id="urg-triaje" placeholder="TA 150/90, FC 110 lpm, SatO2 96%, Nivel II..."></textarea></div>
+                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><textarea id="urg-historia" placeholder="Inicio de síntomas, evolución..."></textarea></div>
+                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes Relevantes</label><textarea id="urg-antecedentes" placeholder="Medicación crónica, tóxicos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><textarea id="urg-exploracion" placeholder="Auscultación, palpación, estado neurológico..."></textarea></div>
+                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas en Urgencias</label><textarea id="urg-pruebas" placeholder="Resultados de ECG, analítica, test rápidos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
+            </div>
+
+            <!-- FORMULARIO DE INGRESO EN PLANTA -->
+            <div id="planta-fields" class="hidden">
+                 <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, Diabetes Mellitus tipo 2, fumador..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física al Ingreso</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR elevada..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico Principal de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: Insuficiencia Cardíaca Congestiva..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial en Planta</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h..."></textarea></div>
+            </div>
+
+            <!-- FORMULARIO DE EVOLUTIVO EN PLANTA -->
+            <div id="evolutivo-fields" class="hidden">
+                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
+            </div>
+
             <button type="button" id="generate-btn">Generar Texto</button>
-            <div class="result-container"> ... </div>
+
+            <!-- Resultados -->
+            <div class="result-container">
+                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
+                <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
+                
+                <div class="result-header" style="margin-top: 20px;"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
+                <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
+
+                <div class="result-header" style="margin-top: 20px;"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
+            </div>
         </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- IDENTIFICACIÓN DE ELEMENTOS ---
+            // --- IDENTIFICACIÓN DE TODOS LOS ELEMENTOS ---
             const contextoSelector = document.getElementById('contexto-informe');
             const urgenciasFields = document.getElementById('urgencias-fields');
             const plantaFields = document.getElementById('planta-fields');
@@ -64,74 +113,24 @@
             const copyRecsBtn = document.getElementById('copy-recs-btn');
             const copyKeywordsBtn = document.getElementById('copy-keywords-btn');
 
-            // --- NUEVO: INICIO DEL CÓDIGO DE VALIDACIÓN INTELIGENTE ---
-            const textosAIgnorar = [
-                '.', '-', '--', '---', '/', '*', '_', 'x',
-                'n/a', 'na', 's/c', 's/d', 's/i', 'nil',
-                'nada', 'ninguno', 'ninguna', 'pendiente', 'pend', 'vacío',
-                'none', 'pending'
-            ];
-
-            // Recopilamos todos los campos de texto y textareas que deben ser validados.
-            const camposValidables = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
-
-            const validarFormularioParaIA = () => {
-                if (!generateBtn) return; // Seguridad por si el botón no existe.
-
-                let contenidoUtilEncontrado = false;
-                const contextoActual = contextoSelector.value;
-                let seccionActiva;
-
-                if (contextoActual === 'urgencias') seccionActiva = urgenciasFields;
-                else if (contextoActual === 'planta') seccionActiva = plantaFields;
-                else seccionActiva = evolutivoFields;
-                
-                // Obtenemos solo los campos DENTRO de la sección activa.
-                const camposActivos = seccionActiva.querySelectorAll('input[type="text"], input[type="number"], textarea');
-
-                for (const campo of camposActivos) {
-                    // Ignoramos los campos de fecha que se rellenan automáticamente.
-                    if (campo.id === 'urg-fecha-hora' || campo.id === 'evo-fecha-hora') continue;
-                    
-                    const textoLimpio = campo.value.trim();
-                    const textoEnMinusculas = textoLimpio.toLowerCase();
-
-                    // Si el campo tiene texto Y NO está en la lista de ignorados, es contenido útil.
-                    if (textoLimpio.length > 0 && !textosAIgnorar.includes(textoEnMinusculas)) {
-                        contenidoUtilEncontrado = true;
-                        break; // Salimos del bucle, ya encontramos lo que necesitábamos.
-                    }
-                }
-                
-                generateBtn.disabled = !contenidoUtilEncontrado;
-            };
-
-            // Añadimos un "escuchador" a cada campo para validar en tiempo real.
-            camposValidables.forEach(campo => {
-                campo.addEventListener('input', validarFormularioParaIA);
-            });
-            // --- NUEVO: FIN DEL CÓDIGO DE VALIDACIÓN ---
-
-
             // --- LÓGICA PARA MOSTRAR/OCULTAR FORMULARIOS ---
             function toggleFields() {
                 const contexto = contextoSelector.value;
                 urgenciasFields.classList.toggle('hidden', contexto !== 'urgencias');
                 plantaFields.classList.toggle('hidden', contexto !== 'planta');
                 evolutivoFields.classList.toggle('hidden', contexto !== 'evolutivo');
-                validarFormularioParaIA(); // --- NUEVO: Validamos el formulario cada vez que cambiamos de contexto.
             }
             contextoSelector.addEventListener('change', toggleFields);
             
             // --- LÓGICA PARA CAMPO DE EMBARAZO ---
-            function toggleEmrazazoField() {
+            function toggleEmbarazoField() {
                 if (sexoSelector.value === 'Mujer') {
                     embarazoContainer.classList.remove('hidden');
                 } else {
                     embarazoContainer.classList.add('hidden');
                 }
             }
-            sexoSelector.addEventListener('change', toggleEmrazazoField);
+            sexoSelector.addEventListener('change', toggleEmbarazoField);
 
             // --- LÓGICA PARA RELLENAR FECHAS AUTOMÁTICAS ---
             function setDateTime(fieldId) {
@@ -145,10 +144,9 @@
             
             // --- INICIALIZACIÓN DE LA PÁGINA ---
             toggleFields(); 
-            toggleEmrazazoField();
+            toggleEmbarazoField();
             setDateTime('urg-fecha-hora');
             setDateTime('evo-fecha-hora');
-            validarFormularioParaIA(); // --- NUEVO: Ejecutamos la validación al cargar para que el botón empiece deshabilitado.
 
             // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
             async function generateNote() {
@@ -195,8 +193,7 @@
                     recommendationsText.value = '';
                     keywordsText.value = '';
                 } finally {
-                    // generateBtn.disabled = false; // --- MODIFICADO: Dejamos que la función de validación controle el botón.
-                    validarFormularioParaIA(); // --- NUEVO: Re-validamos por si el usuario borró el texto mientras se generaba.
+                    generateBtn.disabled = false;
                     generateBtn.textContent = "Generar Texto";
                 }
             }
