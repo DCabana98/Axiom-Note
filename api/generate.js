@@ -78,7 +78,7 @@ ${JSON.stringify(incomingData, null, 2)}
         masterPrompt = "Contexto no reconocido.";
     }
     
-    const modelName = "gemini-1.5-flash-latest";
+    const modelName = "gemini-1.5-pro-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     const requestBody = { contents: [{ parts: [{ text: masterPrompt }] }] };
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
