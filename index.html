@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - Prototipo v1.0</title>
+    <title>Axiom Note - v2.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* Estilos (iguales que antes, con un añadido para ocultar campos) */
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2em; }
@@ -18,11 +18,13 @@
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        h2 { color: #2c3e50; }
+        h2, h3 { color: #2c3e50; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; font-family: inherit; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; }
-        #result-text, #recommendations-text { background-color: #f9fafb; min-height: 250px; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; white-space: pre-wrap; line-height: 1.5; font-size: 1em; font-family: inherit; resize: vertical; box-sizing: border-box; }
+        #result-text, #recommendations-text, #keywords-text { background-color: #f9fafb; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; white-space: pre-wrap; line-height: 1.5; font-size: 1em; font-family: inherit; resize: vertical; box-sizing: border-box; }
+        #result-text { min-height: 250px; }
         #recommendations-text { min-height: 150px; margin-top: 15px; }
-        .hidden { display: none; } /* Clase para ocultar los campos que no correspondan */
+        #keywords-text { min-height: 80px; margin-top: 15px; font-style: italic; color: #34495e; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -32,102 +34,94 @@
             <div class="form-section">
                 <label for="contexto-informe" style="font-size: 1.2em;">Contexto del Informe</label>
                 <select id="contexto-informe">
-                    <option value="urgencias">Urgencias</option>
+                    <option value="urgencias">Urgencias (Primer Contacto)</option>
                     <option value="planta">Ingreso en Planta</option>
+                    <option value="evolutivo">Evolutivo en Planta</option>
                 </select>
             </div>
 
             <div id="urgencias-fields">
-                <div class="form-section datos-grid">
-                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
-                    <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
-                    <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
-                    <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
-                    <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
                 </div>
-                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><textarea id="urg-motivo" placeholder="Dolor torácico opresivo..."></textarea></div>
-                <div class="pattern-group"><label for="urg-triaje">Constantes y Nivel de Triaje</label><textarea id="urg-triaje" placeholder="TA 150/90, FC 110 lpm, SatO2 96%, Nivel II..."></textarea></div>
-                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><textarea id="urg-historia" placeholder="Inicio de síntomas, evolución..."></textarea></div>
-                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes Relevantes</label><textarea id="urg-antecedentes" placeholder="Medicación crónica, tóxicos..."></textarea></div>
-                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><textarea id="urg-exploracion" placeholder="Auscultación, palpación, estado neurológico..."></textarea></div>
-                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas en Urgencias</label><textarea id="urg-pruebas" placeholder="Resultados de ECG, analítica, test rápidos..."></textarea></div>
-                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
-                <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
-            </div>
 
             <div id="planta-fields" class="hidden">
-                 <p><i>(Sección de Ingreso en Planta en desarrollo...)</i></p>
+                </div>
+
+            <div id="evolutivo-fields" class="hidden">
+                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo. Se inició antibioterapia."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados de cultivo. Valorar alta en 24h."></textarea></div>
             </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
             <div class="result-container">
-                <div class="result-header">
-                    <h2>Nota de Evolución</h2>
-                    <button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button>
-                </div>
+                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
                 
-                <div class="result-header" style="margin-top: 20px;">
-                    <h2>Recomendaciones y Plan</h2>
-                    <button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button>
-                </div>
+                <div class="result-header" style="margin-top: 20px;"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
                 <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
+
+                <div class="result-header" style="margin-top: 20px;"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
             </div>
         </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- LÓGICA PARA MOSTRAR/OCULTAR CAMPOS ---
             const contextoSelector = document.getElementById('contexto-informe');
             const urgenciasFields = document.getElementById('urgencias-fields');
             const plantaFields = document.getElementById('planta-fields');
-
+            const evolutivoFields = document.getElementById('evolutivo-fields');
+            
             function toggleFields() {
-                if (contextoSelector.value === 'urgencias') {
-                    urgenciasFields.classList.remove('hidden');
-                    plantaFields.classList.add('hidden');
-                } else {
-                    urgenciasFields.classList.add('hidden');
-                    plantaFields.classList.remove('hidden');
-                }
+                const contexto = contextoSelector.value;
+                urgenciasFields.classList.toggle('hidden', contexto !== 'urgencias');
+                plantaFields.classList.toggle('hidden', contexto !== 'planta');
+                evolutivoFields.classList.toggle('hidden', contexto !== 'evolutivo');
             }
             contextoSelector.addEventListener('change', toggleFields);
-            
-            // --- LÓGICA PARA FECHA Y HORA AUTOMÁTICA ---
-            const fechaHoraField = document.getElementById('urg-fecha-hora');
-            const now = new Date();
-            const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-            fechaHoraField.value = formattedDateTime;
+            toggleFields();
 
-            // --- LÓGICA PRINCIPAL DE GENERACIÓN ---
+            const evoFechaHoraField = document.getElementById('evo-fecha-hora');
+            if(evoFechaHoraField) {
+                 const now = new Date();
+                 const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                 evoFechaHoraField.value = formattedDateTime;
+            }
+            
             const generateBtn = document.getElementById('generate-btn');
             const resultText = document.getElementById('result-text');
             const recommendationsText = document.getElementById('recommendations-text');
+            const keywordsText = document.getElementById('keywords-text');
             const copyReportBtn = document.getElementById('copy-report-btn');
             const copyRecsBtn = document.getElementById('copy-recs-btn');
+            const copyKeywordsBtn = document.getElementById('copy-keywords-btn');
 
             async function generateNote() {
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
                 resultText.value = "Enviando al asistente clínico...";
-                recommendationsText.value = "Analizando...";
+                recommendationsText.value = "Analizando recomendaciones...";
+                keywordsText.value = "Generando resumen...";
                 
-                // Recogemos los datos solo de la sección visible
                 const contexto = contextoSelector.value;
                 let incomingData = { contexto: contexto };
+                let activeFieldsDiv;
 
-                if (contexto === 'urgencias') {
-                    const fields = urgenciasFields.querySelectorAll('input, textarea, select');
+                if (contexto === 'urgencias') activeFieldsDiv = urgenciasFields;
+                else if (contexto === 'planta') activeFieldsDiv = plantaFields;
+                else if (contexto === 'evolutivo') activeFieldsDiv = evolutivoFields;
+
+                if (activeFieldsDiv) {
+                    const fields = activeFieldsDiv.querySelectorAll('input, textarea, select');
                     fields.forEach(field => {
-                        // Limpiamos el 'urg-' del id para tener una clave limpia
-                        const key = field.id.replace('urg-', '');
+                        const key = field.id.replace(`${contexto}-`, '');
                         incomingData[key] = field.value;
                     });
                 }
-                // (Aquí añadiríamos la lógica para recoger los datos de 'planta' en el futuro)
-
+                
                 try {
                     const response = await fetch('/.netlify/functions/generate', {
                         method: 'POST',
@@ -141,9 +135,11 @@
                     const data = await response.json();
                     resultText.value = data.report;
                     recommendationsText.value = data.recommendations;
+                    keywordsText.value = data.keywords;
                 } catch (error) {
                     resultText.value = `Error: ${error.message}`;
                     recommendationsText.value = '';
+                    keywordsText.value = '';
                 } finally {
                     generateBtn.disabled = false;
                     generateBtn.textContent = "Generar Texto";
@@ -151,7 +147,6 @@
             }
             generateBtn.addEventListener('click', generateNote);
             
-            // Lógica de botones de copiar (sin cambios)
             function copyToClipboard(element, button) {
                 if (!element.value) return; 
                 navigator.clipboard.writeText(element.value).then(() => {
@@ -162,7 +157,10 @@
             }
             copyReportBtn.addEventListener('click', () => copyToClipboard(resultText, copyReportBtn));
             copyRecsBtn.addEventListener('click', () => copyToClipboard(recommendationsText, copyRecsBtn));
+            copyKeywordsBtn.addEventListener('click', () => copyToClipboard(keywordsText, copyKeywordsBtn));
         });
     </script>
+</body>
+</html>
 </body>
 </html>
