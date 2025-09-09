@@ -16,7 +16,6 @@ export default async (req, res) => {
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
 
-    // ##### NUEVA REGLA DE ESTILO PARA EFICIENCIA #####
     const reglaDeEstilo = `
 **REGLAS DE ESTILO Y TONO:**
 1.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
@@ -24,7 +23,6 @@ export default async (req, res) => {
 3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
 `;
 
-    // ##### NUEVA REGLA DE FORMATO MÁS ESTRICTA #####
     const reglaDeFormato = `
 **INSTRUCCIÓN FINAL MUY IMPORTANTE:**
 Debes generar 3 bloques de texto separados. Primero el informe, luego las recomendaciones y finalmente las palabras clave.
@@ -50,10 +48,17 @@ ${JSON.stringify(incomingData, null, 2)}
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta.
+Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
+
+**ESTRUCTURA DEL INFORME:**
+1.  **Resumen y Motivo de Ingreso:** Empieza con un resumen conciso del caso.
+2.  **Antecedentes:** Agrupa los antecedentes personales (médicos, quirúrgicos, psiquiátricos), medicación domiciliaria, alergias y la valoración funcional/social en un párrafo coherente y bien redactado.
+3.  **Evaluación al Ingreso:** Describe de forma narrativa la exploración física y los resultados de las pruebas complementarias.
+4.  **Diagnóstico y Plan:** Establece los diagnósticos de ingreso y detalla el plan de tratamiento, el plan de cuidados de enfermería y la justificación de cualquier intervención o dispositivo.
+
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
