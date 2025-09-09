@@ -9,8 +9,43 @@ export default async (req, res) => {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada en Vercel.");
     }
 
+    // --- NUEVO: DOBLE CAPA DE SEGURIDAD ---
+    // Filtramos los datos inútiles en el backend como respaldo.
+
+    const textosAIgnorar = [
+      '.', '-', '--', '---', '/', '*', '_', 'x',
+      'n/a', 'na', 's/c', 's/d', 's/i', 'nil',
+      'nada', 'ninguno', 'ninguna', 'pendiente', 'pend', 'vacío',
+      'none', 'pending'
+    ];
+
+    const datosFiltrados = {};
+    for (const [clave, valor] of Object.entries(incomingData)) {
+      // Nos aseguramos de que el valor sea un string antes de usar .trim()
+      if (typeof valor === 'string') {
+        const valorLimpio = valor.trim();
+        const valorEnMinusculas = valorLimpio.toLowerCase();
+
+        // Solo añadimos el dato si tiene contenido Y no está en la lista de ignorados.
+        if (valorLimpio.length > 0 && !textosAIgnorar.includes(valorEnMinusculas)) {
+          datosFiltrados[clave] = valor; // Guardamos el valor original, no el modificado
+        }
+      } else {
+        // Si no es un string (ej. la edad), lo conservamos.
+        datosFiltrados[clave] = valor;
+      }
+    }
+
+    // Si después de filtrar no queda ningún dato relevante (excepto el contexto), no llamamos a la IA.
+    const clavesRelevantes = Object.keys(datosFiltrados).filter(k => k !== 'contexto');
+    if (clavesRelevantes.length === 0) {
+      return res.status(400).json({ error: "No se proporcionaron datos suficientes para generar un informe." });
+    }
+    // --- FIN DE LA NUEVA SECCIÓN ---
+
+
     let masterPrompt;
-    const contexto = incomingData.contexto;
+    const contexto = datosFiltrados.contexto; // Usamos los datos filtrados
 
     switch (contexto) {
       case 'urgencias':
@@ -18,7 +53,7 @@ export default async (req, res) => {
 Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es redactar una nota de ingreso desde urgencias, que sea un modelo de claridad, eficiencia y rigor clínico.
 **REGLAS:**
 1.  **ESTILO:** Redacta en párrafos fluidos y coherentes. Usa un lenguaje activo y profesional. Evita el estilo telegráfico.
-2.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
+2.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada. No inventes datos para campos vacíos o no proporcionados.
 3.  **SEPARACIÓN:** Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
 Después del bloque de recomendaciones, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman el caso.
 
@@ -33,7 +68,7 @@ Después del bloque de recomendaciones, añade otra línea separadora que conten
 
 A continuación se presentan los datos para generar el informe de URGENCIAS:
 ---
-${JSON.stringify(incomingData, null, 2)}
+${JSON.stringify(datosFiltrados, null, 2)}
 ---
 `;
         break;
@@ -43,7 +78,7 @@ ${JSON.stringify(incomingData, null, 2)}
 Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria.
 **REGLAS:**
 1.  **ESTILO:** Redacta en párrafos coherentes y profesionales, conectando las ideas. Usa terminología médica estándar.
-2.  **OBJETIVIDAD:** Basa el informe estrictamente en los datos proporcionados.
+2.  **OBJETIVIDAD:** Basa el informe estrictamente en los datos proporcionados. No inventes datos para campos vacíos o no proporcionados.
 3.  **SEPARACIÓN:** Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
 Después del bloque de recomendaciones, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman el ingreso.
 
@@ -60,7 +95,7 @@ Después del bloque de recomendaciones, añade otra línea separadora que conten
 
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA:
 ---
-${JSON.stringify(incomingData, null, 2)}
+${JSON.stringify(datosFiltrados, null, 2)}
 ---
 `;
         break;
@@ -70,14 +105,15 @@ ${JSON.stringify(incomingData, null, 2)}
 Actúa como un médico de planta redactando una nota de evolución concisa.
 **REGLAS:**
 1.  **ESTILO:** Redacta un único párrafo fluido y profesional. Sé directo.
-2.  **CONTENIDO:** Describe el estado actual, los eventos relevantes y el plan a seguir. NO incluyas datos demográficos del paciente (nombre, edad, etc.).
+2.  **OBJETIVIDAD:** Basa el informe estrictamente en los datos proporcionados. No inventes datos para campos vacíos o no proporcionados.
+3.  **CONTENIDO:** Describe el estado actual, los eventos relevantes y el plan a seguir. NO incluyas datos demográficos del paciente (nombre, edad, etc.).
 **INSTRUCCIÓN FINAL MUY IMPORTANTE:**
 Separa el informe principal (BLOQUE 1) de las recomendaciones (BLOQUE 2) usando una única línea que contenga: ---SEPARADOR---
 Después del BLOQUE 2, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman la evolución actual.
 
 A continuación se presentan los datos para generar el EVOLUTIVO EN PLANTA:
 ---
-${JSON.stringify(incomingData, null, 2)}
+${JSON.stringify(datosFiltrados, null, 2)}
 ---
 `;
         break;
