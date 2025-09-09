@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v2.1</title>
+    <title>Axiom Note - v2.2</title>
     <style>
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
@@ -15,9 +15,10 @@
         input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1em; font-family: inherit; }
         textarea { min-height: 80px; resize: vertical; }
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+        #generate-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        h2, h3 { color: #2c3e50; }
+        h2, h3 { color: #2c3e50; margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; font-family: inherit; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 6px; cursor: pointer; }
         #result-text, #recommendations-text, #keywords-text { background-color: #f9fafb; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; white-space: pre-wrap; line-height: 1.5; font-size: 1em; font-family: inherit; resize: vertical; box-sizing: border-box; }
         #result-text { min-height: 250px; }
@@ -39,7 +40,7 @@
                 </select>
             </div>
 
-            <div id="urgencias-fields" class="hidden">
+            <div id="urgencias-fields">
                  <div class="form-section datos-grid">
                     <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
                     <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
@@ -59,21 +60,21 @@
             </div>
 
             <div id="planta-fields" class="hidden">
-                 <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
-                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales (Relevantes)</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, Diabetes Mellitus tipo 2, fumador. Alergia a penicilina."></textarea></div>
-                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg, AAS 100mg."></textarea></div>
-                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física al Ingreso</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. AC: rítmica sin soplos. AP: crepitantes en bases. EEII: edemas con fóvea."></textarea></div>
-                 <div class="pattern-group"><label for="planta-pruebas">Pruebas Complementarias (Resultados)</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR elevada. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
-                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico Principal de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: Insuficiencia Cardíaca Congestiva descompensada."></textarea></div>
-                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial en Planta</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), se ajusta tratamiento antihipertensivo..."></textarea></div>
-                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis, dieta hiposódica..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, Diabetes Mellitus tipo 2, fumador..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física al Ingreso</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR elevada..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico Principal de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: Insuficiencia Cardíaca Congestiva..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial en Planta</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h..."></textarea></div>
             </div>
 
             <div id="evolutivo-fields" class="hidden">
                  <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
                  <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
-                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes (desde la última nota)</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo. Se inició antibioterapia."></textarea></div>
-                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados de cultivo. Valorar alta en 24h."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
             </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
@@ -93,7 +94,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- IDENTIFICACIÓN DE ELEMENTOS ---
+            // --- IDENTIFICACIÓN DE TODOS LOS ELEMENTOS ---
             const contextoSelector = document.getElementById('contexto-informe');
             const urgenciasFields = document.getElementById('urgencias-fields');
             const plantaFields = document.getElementById('planta-fields');
@@ -138,10 +139,10 @@
             }
             
             // --- INICIALIZACIÓN DE LA PÁGINA ---
-            toggleFields(); // Muestra el formulario correcto al cargar
-            toggleEmbarazoField(); // Comprueba el estado inicial del campo de embarazo
-            setDateTime('urg-fecha-hora'); // Rellena la fecha en Urgencias
-            setDateTime('evo-fecha-hora'); // Rellena la fecha en Evolutivo
+            toggleFields(); 
+            toggleEmbarazoField();
+            setDateTime('urg-fecha-hora');
+            setDateTime('evo-fecha-hora');
 
             // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
             async function generateNote() {
@@ -162,7 +163,7 @@
                 if (activeFieldsDiv) {
                     const fields = activeFieldsDiv.querySelectorAll('input, textarea, select');
                     fields.forEach(field => {
-                        if (field.closest('.hidden') === null) {
+                        if (field.id && field.closest('.hidden') === null) {
                             const key = field.id.replace(`${contexto}-`, '');
                             incomingData[key] = field.value;
                         }
@@ -170,7 +171,7 @@
                 }
                 
                 try {
-                    const response = await fetch('/.netlify/functions/generate', {
+                    const response = await fetch('/api/generate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ incomingData: incomingData }),
