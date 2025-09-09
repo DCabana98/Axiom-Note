@@ -16,27 +16,32 @@ export default async (req, res) => {
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
 
+    // ##### NUEVA REGLA DE ESTILO PARA EFICIENCIA #####
+    const reglaDeEstilo = `
+**REGLAS DE ESTILO Y TONO:**
+1.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
+2.  **CLARIDAD Y FLUIDEZ:** Redacta en párrafos coherentes y profesionales. Evita el estilo telegráfico.
+3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
+`;
+
+    // ##### NUEVA REGLA DE FORMATO MÁS ESTRICTA #####
+    const reglaDeFormato = `
+**INSTRUCCIÓN FINAL MUY IMPORTANTE:**
+Debes generar 3 bloques de texto separados. Primero el informe, luego las recomendaciones y finalmente las palabras clave.
+1.  Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
+2.  Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
+3.  Después de ---KEYWORDS---, escribe una lista de 5 a 7 palabras clave separadas por comas.
+`;
+
+
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es redactar una nota de ingreso desde urgencias, que sea un modelo de claridad, eficiencia y rigor clínico.
+Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es redactar una nota de ingreso desde urgencias.
 ${reglaDeOro}
-**REGLAS DE ESTILO Y TONO:**
-1.  **ESTILO:** Redacta en párrafos fluidos y coherentes. Usa un lenguaje activo y profesional. Evita el estilo telegráfico.
-2.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
-3.  **SEPARACIÓN:** Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
-Después del bloque de recomendaciones, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman el caso.
-
-**ESTRUCTURA DEL INFORME (BLOQUE 1):**
-- Inicia con una presentación del paciente (edad, sexo, alergias).
-- Describe el motivo de consulta, la historia actual y los antecedentes relevantes.
-- Detalla la exploración física y los resultados de las pruebas realizadas.
-- Finaliza con la sospecha diagnóstica y el plan inmediato ejecutado.
-**ESTRUCTURA DE RECOMENDACIONES (BLOQUE 2):**
-- Analiza posibles interacciones o RAMs.
-- Proporciona 2-3 recomendaciones clínicas razonadas (ej: "Valorar interconsulta con...", "Monitorizar...").
-
-A continuación se presentan los datos para generar el informe de URGENCIAS:
+${reglaDeEstilo}
+${reglaDeFormato}
+A continuación se presentan los datos para generar el informe de URGENCIAS en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---
@@ -45,26 +50,11 @@ ${JSON.stringify(incomingData, null, 2)}
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria.
+Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta.
 ${reglaDeOro}
-**REGLAS DE ESTILO Y TONO:**
-1.  **ESTILO:** Redacta en párrafos coherentes y profesionales, conectando las ideas. Usa terminología médica estándar.
-2.  **OBJETIVIDAD:** Basa el informe estrictamente en los datos proporcionados.
-3.  **SEPARACIÓN:** Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
-Después del bloque de recomendaciones, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman el ingreso.
-
-**ESTRUCTURA DEL INFORME (BLOQUE 1):**
-- Inicia con el "Resumen del Caso y Motivo de Ingreso".
-- Detalla los "Antecedentes Personales" y la "Medicación Domiciliaria".
-- Describe de forma narrativa la "Exploración Física" y los resultados de las "Pruebas Complementarias".
-- Establece claramente el "Diagnóstico Principal de Ingreso".
-**ESTRUCTURA DE RECOMENDACIONES (BLOQUE 2):**
-- Describe el "Plan de Tratamiento Inicial en Planta".
-- Detalla el "Plan de Cuidados de Enfermería".
-- Analiza posibles interacciones o RAMs relevantes.
-- Proporciona 2-3 recomendaciones clínicas adicionales si lo consideras necesario.
-
-A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA:
+${reglaDeEstilo}
+${reglaDeFormato}
+A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---
@@ -75,14 +65,9 @@ ${JSON.stringify(incomingData, null, 2)}
         masterPrompt = `
 Actúa como un médico de planta redactando una nota de evolución concisa.
 ${reglaDeOro}
-**REGLAS DE ESTILO Y TONO:**
-1.  **ESTILO:** Redacta un único párrafo fluido y profesional. Sé directo.
-2.  **CONTENIDO:** Describe el estado actual, los eventos relevantes y el plan a seguir. NO incluyas datos demográficos del paciente (nombre, edad, etc.).
-**INSTRUCCIÓN FINAL MUY IMPORTANTE:**
-Separa el informe principal (BLOQUE 1) de las recomendaciones (BLOQUE 2) usando una única línea que contenga: ---SEPARADOR---
-Después del BLOQUE 2, añade otra línea separadora que contenga: ---KEYWORDS--- y a continuación una lista de 5-7 palabras clave que resuman la evolución actual.
-
-A continuación se presentan los datos para generar el EVOLUTIVO EN PLANTA:
+${reglaDeEstilo}
+${reglaDeFormato}
+A continuación se presentan los datos para generar el EVOLUTIVO EN PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---
