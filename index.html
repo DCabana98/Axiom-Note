@@ -40,9 +40,42 @@
                 </select>
             </div>
 
-            <div id="urgencias-fields" class="hidden"> ... </div>
-            <div id="planta-fields" class="hidden"> ... </div>
-            <div id="evolutivo-fields" class="hidden"> ... </div>
+            <div id="urgencias-fields" class="hidden">
+                 <div class="form-section datos-grid">
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
+                    <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
+                    <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
+                    <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                    <div id="urg-embarazo-container" class="hidden"><label for="urg-embarazo">Embarazo</label><select id="urg-embarazo"><option value="No">No</option><option value="Sí">Sí</option><option value="No sabe">No sabe</option></select></div>
+                    <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
+                </div>
+                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><textarea id="urg-motivo" placeholder="Dolor torácico opresivo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-triaje">Constantes y Nivel de Triaje</label><textarea id="urg-triaje" placeholder="TA 150/90, FC 110 lpm, SatO2 96%, Nivel II..."></textarea></div>
+                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><textarea id="urg-historia" placeholder="Inicio de síntomas, evolución..."></textarea></div>
+                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes Relevantes</label><textarea id="urg-antecedentes" placeholder="Medicación crónica, tóxicos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><textarea id="urg-exploracion" placeholder="Auscultación, palpación, estado neurológico..."></textarea></div>
+                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas en Urgencias</label><textarea id="urg-pruebas" placeholder="Resultados de ECG, analítica, test rápidos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
+            </div>
+
+            <div id="planta-fields" class="hidden">
+                 <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, Diabetes Mellitus tipo 2, fumador..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física al Ingreso</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR elevada..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico Principal de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: Insuficiencia Cardíaca Congestiva..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial en Planta</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h..."></textarea></div>
+            </div>
+
+            <div id="evolutivo-fields" class="hidden">
+                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
+            </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
@@ -58,8 +91,8 @@
             </div>
             
             <div style="margin-top: 20px; text-align: right;">
-                 <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
-            </div>
+                <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
+           </div>
         </form>
     </div>
 
@@ -80,7 +113,7 @@
             const copyRecsBtn = document.getElementById('copy-recs-btn');
             const copyKeywordsBtn = document.getElementById('copy-keywords-btn');
             const noteForm = document.getElementById('note-form');
-            const clearBtn = document.getElementById('clear-btn'); // Botón de limpiar
+            const clearBtn = document.getElementById('clear-btn');
 
             // --- LÓGICA PARA MOSTRAR/OCULTAR FORMULARIOS ---
             function toggleFields() {
@@ -119,11 +152,55 @@
 
             // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
             async function generateNote() {
-                // ... (lógica de generación sin cambios)
+                generateBtn.disabled = true;
+                generateBtn.textContent = "Generando...";
+                resultText.value = "Enviando al asistente clínico...";
+                recommendationsText.value = "Analizando recomendaciones...";
+                keywordsText.value = "Generando resumen...";
+                
+                const contexto = contextoSelector.value;
+                let incomingData = { contexto: contexto };
+                let activeFieldsDiv;
+
+                if (contexto === 'urgencias') activeFieldsDiv = urgenciasFields;
+                else if (contexto === 'planta') activeFieldsDiv = plantaFields;
+                else if (contexto === 'evolutivo') activeFieldsDiv = evolutivoFields;
+
+                if (activeFieldsDiv) {
+                    const fields = activeFieldsDiv.querySelectorAll('input, textarea, select');
+                    fields.forEach(field => {
+                        if (field.id && field.closest('.hidden') === null) {
+                            const key = field.id.replace(`${contexto}-`, '');
+                            incomingData[key] = field.value;
+                        }
+                    });
+                }
+                
+                try {
+                    const response = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ incomingData: incomingData }),
+                    });
+                    if (!response.ok) {
+                         const errorData = await response.json();
+                        throw new Error(errorData.error || `Error en la respuesta del servidor.`);
+                    }
+                    const data = await response.json();
+                    resultText.value = data.report;
+                    recommendationsText.value = data.recommendations;
+                    keywordsText.value = data.keywords;
+                } catch (error) {
+                    resultText.value = `Error: ${error.message}`;
+                    recommendationsText.value = '';
+                    keywordsText.value = '';
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = "Generar Texto";
+                }
             }
             generateBtn.addEventListener('click', generateNote);
             
-            // --- FUNCIONES DE LOS BOTONES UTILITARIOS ---
             function copyToClipboard(element, button) {
                 if (!element.value) return; 
                 navigator.clipboard.writeText(element.value).then(() => {
@@ -134,7 +211,7 @@
             }
 
             function clearForm() {
-                const fields = noteForm.querySelectorAll('input[type="text"], input[type="number"], textarea, select');
+                const fields = noteForm.querySelectorAll('input, textarea, select');
                 fields.forEach(field => {
                     if (field.id !== 'contexto-informe') {
                         if (field.tagName === 'SELECT') {
@@ -144,18 +221,16 @@
                         }
                     }
                 });
-                // También limpiamos los resultados
                 resultText.value = '';
                 recommendationsText.value = '';
                 keywordsText.value = '';
-                // Re-ejecutamos las funciones de estado inicial
+                
                 toggleFields();
                 toggleEmbarazoField();
                 setDateTime('urg-fecha-hora');
                 setDateTime('evo-fecha-hora');
             }
             
-            // Asignamos los eventos a los botones
             copyReportBtn.addEventListener('click', () => copyToClipboard(resultText, copyReportBtn));
             copyRecsBtn.addEventListener('click', () => copyToClipboard(recommendationsText, copyRecsBtn));
             copyKeywordsBtn.addEventListener('click', () => copyToClipboard(keywordsText, copyKeywordsBtn));
