@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v2.0</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>Axiom Note - v2.1</title>
     <style>
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
@@ -40,16 +39,40 @@
                 </select>
             </div>
 
-            <div id="urgencias-fields">
+            <div id="urgencias-fields" class="hidden">
+                 <div class="form-section datos-grid">
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
+                    <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
+                    <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
+                    <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                    <div id="urg-embarazo-container" class="hidden"><label for="urg-embarazo">Embarazo</label><select id="urg-embarazo"><option value="No">No</option><option value="Sí">Sí</option><option value="No sabe">No sabe</option></select></div>
+                    <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
                 </div>
+                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><textarea id="urg-motivo" placeholder="Dolor torácico opresivo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-triaje">Constantes y Nivel de Triaje</label><textarea id="urg-triaje" placeholder="TA 150/90, FC 110 lpm, SatO2 96%, Nivel II..."></textarea></div>
+                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><textarea id="urg-historia" placeholder="Inicio de síntomas, evolución..."></textarea></div>
+                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes Relevantes</label><textarea id="urg-antecedentes" placeholder="Medicación crónica, tóxicos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><textarea id="urg-exploracion" placeholder="Auscultación, palpación, estado neurológico..."></textarea></div>
+                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas en Urgencias</label><textarea id="urg-pruebas" placeholder="Resultados de ECG, analítica, test rápidos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
+            </div>
 
             <div id="planta-fields" class="hidden">
-                </div>
+                 <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales (Relevantes)</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, Diabetes Mellitus tipo 2, fumador. Alergia a penicilina."></textarea></div>
+                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg, AAS 100mg."></textarea></div>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física al Ingreso</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. AC: rítmica sin soplos. AP: crepitantes en bases. EEII: edemas con fóvea."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Pruebas Complementarias (Resultados)</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR elevada. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
+                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico Principal de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: Insuficiencia Cardíaca Congestiva descompensada."></textarea></div>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial en Planta</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), se ajusta tratamiento antihipertensivo..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis, dieta hiposódica..."></textarea></div>
+            </div>
 
             <div id="evolutivo-fields" class="hidden">
                  <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
                  <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
-                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo. Se inició antibioterapia."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes (desde la última nota)</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo. Se inició antibioterapia."></textarea></div>
                  <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados de cultivo. Valorar alta en 24h."></textarea></div>
             </div>
 
@@ -70,27 +93,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- IDENTIFICACIÓN DE ELEMENTOS ---
             const contextoSelector = document.getElementById('contexto-informe');
             const urgenciasFields = document.getElementById('urgencias-fields');
             const plantaFields = document.getElementById('planta-fields');
             const evolutivoFields = document.getElementById('evolutivo-fields');
-            
-            function toggleFields() {
-                const contexto = contextoSelector.value;
-                urgenciasFields.classList.toggle('hidden', contexto !== 'urgencias');
-                plantaFields.classList.toggle('hidden', contexto !== 'planta');
-                evolutivoFields.classList.toggle('hidden', contexto !== 'evolutivo');
-            }
-            contextoSelector.addEventListener('change', toggleFields);
-            toggleFields();
-
-            const evoFechaHoraField = document.getElementById('evo-fecha-hora');
-            if(evoFechaHoraField) {
-                 const now = new Date();
-                 const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                 evoFechaHoraField.value = formattedDateTime;
-            }
-            
+            const sexoSelector = document.getElementById('urg-sexo');
+            const embarazoContainer = document.getElementById('urg-embarazo-container');
             const generateBtn = document.getElementById('generate-btn');
             const resultText = document.getElementById('result-text');
             const recommendationsText = document.getElementById('recommendations-text');
@@ -99,6 +108,42 @@
             const copyRecsBtn = document.getElementById('copy-recs-btn');
             const copyKeywordsBtn = document.getElementById('copy-keywords-btn');
 
+            // --- LÓGICA PARA MOSTRAR/OCULTAR FORMULARIOS ---
+            function toggleFields() {
+                const contexto = contextoSelector.value;
+                urgenciasFields.classList.toggle('hidden', contexto !== 'urgencias');
+                plantaFields.classList.toggle('hidden', contexto !== 'planta');
+                evolutivoFields.classList.toggle('hidden', contexto !== 'evolutivo');
+            }
+            contextoSelector.addEventListener('change', toggleFields);
+            
+            // --- LÓGICA PARA CAMPO DE EMBARAZO ---
+            function toggleEmbarazoField() {
+                if (sexoSelector.value === 'Mujer') {
+                    embarazoContainer.classList.remove('hidden');
+                } else {
+                    embarazoContainer.classList.add('hidden');
+                }
+            }
+            sexoSelector.addEventListener('change', toggleEmbarazoField);
+
+            // --- LÓGICA PARA RELLENAR FECHAS AUTOMÁTICAS ---
+            function setDateTime(fieldId) {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    const now = new Date();
+                    const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    field.value = formattedDateTime;
+                }
+            }
+            
+            // --- INICIALIZACIÓN DE LA PÁGINA ---
+            toggleFields(); // Muestra el formulario correcto al cargar
+            toggleEmbarazoField(); // Comprueba el estado inicial del campo de embarazo
+            setDateTime('urg-fecha-hora'); // Rellena la fecha en Urgencias
+            setDateTime('evo-fecha-hora'); // Rellena la fecha en Evolutivo
+
+            // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
             async function generateNote() {
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
@@ -117,8 +162,10 @@
                 if (activeFieldsDiv) {
                     const fields = activeFieldsDiv.querySelectorAll('input, textarea, select');
                     fields.forEach(field => {
-                        const key = field.id.replace(`${contexto}-`, '');
-                        incomingData[key] = field.value;
+                        if (field.closest('.hidden') === null) {
+                            const key = field.id.replace(`${contexto}-`, '');
+                            incomingData[key] = field.value;
+                        }
                     });
                 }
                 
@@ -160,7 +207,5 @@
             copyKeywordsBtn.addEventListener('click', () => copyToClipboard(keywordsText, copyKeywordsBtn));
         });
     </script>
-</body>
-</html>
 </body>
 </html>
