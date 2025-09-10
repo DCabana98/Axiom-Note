@@ -54,8 +54,8 @@ ${reglaDeEstilo}
 ${reglaDeFormato}
 
 **ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
-1.  **Contexto del Paciente:** Sintetiza en un párrafo coherente la información de los campos 'resumen', 'alergias', 'antecedentes', 'medicacion' y 'funcional_social'. No olvides incluir los datos básicos del paciente (nombre, edad, sexo) al principio del todo.
-2.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas. Finaliza estableciendo el/los 'diagnostico(s)'.
+1.  **Identificación y Contexto del Paciente:** Inicia siempre presentando al paciente con los datos básicos (nombre, edad, sexo). A continuación, sintetiza en un párrafo coherente la información de los campos 'motivo_ingreso', 'alergias' y 'antecedentes'.
+2.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas.
 3.  **Plan de Actuación:** Detalla el 'tratamiento' inicial, el plan de 'cuidados' de enfermería y la 'justificacion' de intervenciones o dispositivos.
 
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
