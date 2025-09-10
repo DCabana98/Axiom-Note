@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v2.9</title>
+    <title>Axiom Note - v3.4</title>
     <style>
         /* --- VARIABLES DE COLOR (TEMA CLARO Y OSCURO) --- */
         :root {
@@ -51,23 +51,41 @@
             padding: 30px; 
             border-radius: 12px; 
             box-shadow: 0 4px 12px var(--shadow-color);
-            position: relative; /* Para posicionar el botón del tema */
+            position: relative;
             transition: background-color 0.3s;
         }
 
-        /* --- BOTÓN PARA CAMBIAR TEMA --- */
-        .theme-switcher {
+        /* --- SELECTOR DE TEMA --- */
+        .theme-selector-container {
             position: absolute;
             top: 20px;
             right: 20px;
-            cursor: pointer;
-            font-size: 1.5em;
-            background: none;
-            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-selector-container label {
+            font-size: 0.9em;
+            margin-bottom: 0;
             color: var(--label-color);
         }
+        #theme-select {
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: inherit;
+        }
 
-        h1 { text-align: center; color: var(--header-color); margin-bottom: 30px; font-size: 2em; }
+        h1 { 
+            text-align: center; 
+            color: var(--header-color); 
+            margin-top: 40px; 
+            margin-bottom: 30px; 
+            font-size: 2em; 
+            text-transform: uppercase;
+        }
         .form-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
         .datos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .pattern-group { margin-bottom: 25px; }
@@ -123,19 +141,27 @@
 </head>
 <body>
     <div class="container">
-        <button id="theme-toggle" class="theme-switcher" title="Cambiar tema">🌙</button>
+        <div class="theme-selector-container">
+            <label for="theme-select">Tema:</label>
+            <select id="theme-select">
+                <option value="light">Claro</option>
+                <option value="dark">Oscuro</option>
+            </select>
+        </div>
 
         <h1>Axiom Note</h1>
         <form id="note-form">
+            <!-- El resto del formulario sigue igual -->
             <div class="form-section">
                 <label for="contexto-informe" style="font-size: 1.2em;">Contexto del Informe</label>
                 <select id="contexto-informe">
-                    <option value="urgencias">Urgencias (Primer Contacto)</option>
+                    <option value="urgencias">Urgencias</option> <!-- ¡CAMBIO REALIZADO AQUÍ! -->
                     <option value="planta">Ingreso en Planta</option>
-                    <option value="evolutivo">Evolutivo en Planta</option>
+                    <option value="evolutivo">Evolutivo de planta</option>
                 </select>
             </div>
 
+            <!-- FORMULARIO DE URGENCIAS -->
             <div id="urgencias-fields" class="hidden">
                  <div class="form-section datos-grid">
                     <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
@@ -155,6 +181,7 @@
                 <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
             </div>
 
+            <!-- FORMULARIO DE INGRESO EN PLANTA -->
             <div id="planta-fields" class="hidden">
                 <h3>Información Inicial</h3>
                 <div class="form-section datos-grid">
@@ -175,6 +202,7 @@
                 <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones/Dispositivos</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
             </div>
 
+            <!-- FORMULARIO DE EVOLUTIVO EN PLANTA -->
             <div id="evolutivo-fields" class="hidden">
                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
@@ -184,6 +212,7 @@
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
+            <!-- Resultados -->
             <div class="result-container">
                 <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
@@ -350,7 +379,7 @@
             function clearForm() {
                 const fields = noteForm.querySelectorAll('input, textarea, select');
                 fields.forEach(field => {
-                    if (field.id !== 'contexto-informe') {
+                    if (field.id !== 'contexto-informe' && field.id !== 'theme-select') {
                         if (field.tagName === 'SELECT') {
                             field.selectedIndex = 0;
                         } else {
@@ -385,30 +414,24 @@
             validarFormularioParaIA();
         });
 
-        // --- LÓGICA DEL MODO OSCURO ---
+        // --- LÓGICA DEL SELECTOR DE TEMA SIMPLIFICADO ---
         document.addEventListener('DOMContentLoaded', () => {
-            const themeToggle = document.getElementById('theme-toggle');
-            
-            // Función para aplicar el tema
-            const applyTheme = (theme) => {
+            const themeSelect = document.getElementById('theme-select');
+
+            function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.body.classList.add('dark-mode');
-                    themeToggle.textContent = '☀️'; // Sol para cambiar a modo claro
                 } else {
                     document.body.classList.remove('dark-mode');
-                    themeToggle.textContent = '🌙'; // Luna para cambiar a modo oscuro
                 }
-            };
+            }
 
-            // Cargar el tema guardado al iniciar
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('theme') || 'light'; // Por defecto, tema claro
             applyTheme(savedTheme);
+            themeSelect.value = savedTheme;
 
-            // Evento para cambiar el tema
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
+            themeSelect.addEventListener('change', (e) => {
+                const newTheme = e.target.value;
                 localStorage.setItem('theme', newTheme);
                 applyTheme(newTheme);
             });
@@ -416,3 +439,4 @@
     </script>
 </body>
 </html>
+
