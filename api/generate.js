@@ -53,11 +53,10 @@ ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-**ESTRUCTURA DEL INFORME:**
-1.  **Resumen y Motivo de Ingreso:** Empieza con un resumen conciso del caso.
-2.  **Antecedentes:** Agrupa los antecedentes personales (médicos, quirúrgicos, psiquiátricos), medicación domiciliaria, alergias y la valoración funcional/social en un párrafo coherente y bien redactado.
-3.  **Evaluación al Ingreso:** Describe de forma narrativa la exploración física y los resultados de las pruebas complementarias.
-4.  **Diagnóstico y Plan:** Establece los diagnósticos de ingreso y detalla el plan de tratamiento, el plan de cuidados de enfermería y la justificación de cualquier intervención o dispositivo.
+**ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
+1.  **Contexto del Paciente:** Sintetiza en un párrafo coherente la información de los campos 'resumen', 'alergias', 'antecedentes', 'medicacion' y 'funcional_social'. No olvides incluir los datos básicos del paciente (nombre, edad, sexo) al principio del todo.
+2.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas. Finaliza estableciendo el/los 'diagnostico(s)'.
+3.  **Plan de Actuación:** Detalla el 'tratamiento' inicial, el plan de 'cuidados' de enfermería y la 'justificacion' de intervenciones o dispositivos.
 
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---

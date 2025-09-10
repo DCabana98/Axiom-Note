@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v2.5</title>
+    <title>Axiom Note - v2.6</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
@@ -15,7 +16,7 @@
         label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; }
         input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1em; font-family: inherit; }
         textarea { min-height: 80px; resize: vertical; }
-        #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; transition: background-color 0.3s ease; }
+        #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; font-family: inherit; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -41,7 +42,6 @@
                 </select>
             </div>
 
-            <!-- FORMULARIO DE URGENCIAS -->
             <div id="urgencias-fields" class="hidden">
                  <div class="form-section datos-grid">
                     <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
@@ -61,8 +61,12 @@
                 <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
             </div>
 
-            <!-- ##### FORMULARIO DE INGRESO EN PLANTA (ACTUALIZADO) ##### -->
             <div id="planta-fields" class="hidden">
+                 <div class="form-section datos-grid">
+                    <div><label for="planta-nombre">Nombre</label><input type="text" id="planta-nombre"></div>
+                    <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
+                    <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                 </div>
                  <h3>Bloque 1: Contexto del Paciente</h3>
                  <div class="pattern-group"><label for="planta-resumen">Resumen del Caso y Motivo de Ingreso</label><textarea id="planta-resumen" placeholder="Ej: Paciente de 68 años que ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
                  <div class="pattern-group"><label for="planta-alergias">Alergias Conocidas</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
@@ -81,7 +85,6 @@
                  <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones/Dispositivos</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia y tratamiento. Se inicia profilaxis tromboembólica con heparina por inmovilidad."></textarea></div>
             </div>
 
-            <!-- FORMULARIO DE EVOLUTIVO EN PLANTA -->
             <div id="evolutivo-fields" class="hidden">
                  <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
                  <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
@@ -91,7 +94,6 @@
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
-            <!-- Resultados -->
             <div class="result-container">
                 <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
@@ -138,7 +140,7 @@
             }
             contextoSelector.addEventListener('change', toggleFields);
             
-            // --- LÓGICA PARA CAMPO DE EMBARAZO ---
+            // --- LÓGICA PARA CAMPO DE EMBARAZO (SOLO EN URGENCIAS) ---
             function toggleEmbarazoField() {
                 if (sexoSelector && sexoSelector.value === 'Mujer') {
                     embarazoContainer.classList.remove('hidden');
@@ -192,7 +194,9 @@
 
             // --- INICIALIZACIÓN DE LA PÁGINA ---
             toggleFields(); 
-            toggleEmbarazoField();
+            if (sexoSelector) {
+                toggleEmbarazoField();
+            }
             setDateTime('urg-fecha-hora');
             setDateTime('evo-fecha-hora');
             validarFormularioParaIA();
@@ -274,7 +278,9 @@
                 keywordsText.value = '';
                 
                 toggleFields();
-                toggleEmbarazoField();
+                if (sexoSelector) {
+                   toggleEmbarazoField();
+                }
                 setDateTime('urg-fecha-hora');
                 setDateTime('evo-fecha-hora');
                 validarFormularioParaIA();
