@@ -3,72 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v4.2</title>
+    <title>Axiom Note - v3.8</title>
+    <!-- 1. Añadimos la librería para crear PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg-color: #f4f7f9; --container-bg-color: #ffffff; --text-color: #333;
             --header-color: #2c3e50; --label-color: #34495e; --border-color: #ccc;
             --input-bg-color: #ffffff; --result-bg-color: #f9fafb; --shadow-color: rgba(0, 0, 0, 0.08);
             --utility-btn-bg: #ecf0f1; --utility-btn-text: #2c3e50; --utility-btn-border: #bdc3c7;
-            --snippet-icon-color: #7f8c8d;
         }
         body.dark-mode {
-            --bg-color: #1a1a2e; --container-bg-color: #16213e; --text-color: #e0e0e0;
-            --header-color: #ffffff; --label-color: #a7b4c4; --border-color: #555;
-            --input-bg-color: #2c3e50; --result-bg-color: #0f3460; --shadow-color: rgba(0, 0, 0, 0.2);
-            --utility-btn-bg: #2c3e50; --utility-btn-text: #e0e0e0; --utility-btn-border: #555;
-            --snippet-icon-color: #a7b4c4;
+            --bg-color: #131314; --container-bg-color: #1e1f20; --text-color: #e3e3e3;
+            --header-color: #ffffff; --label-color: #bdc1c6; --border-color: #444746;
+            --input-bg-color: #303134; --result-bg-color: #282a2c; --shadow-color: rgba(0, 0, 0, 0.3);
+            --utility-btn-bg: #303134; --utility-btn-text: #e3e3e3; --utility-btn-border: #444746;
         }
         body { font-family: "Times New Roman", Times, serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; transition: background-color 0.3s, color 0.3s; }
         .container { max-width: 800px; margin: 0 auto; background-color: var(--container-bg-color); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px var(--shadow-color); position: relative; transition: background-color 0.3s; }
         .top-controls { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 15px; }
         .control-group { display: flex; align-items: center; gap: 8px; }
         .control-group label { font-size: 0.9em; margin-bottom: 0; color: var(--label-color); }
-        .control-group select, .control-group button {
+        .control-group select {
             background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color);
             border-radius: 6px; padding: 4px 8px; font-family: inherit;
         }
-        .control-group button { cursor: pointer; }
         h1 { text-align: center; color: var(--header-color); margin-top: 60px; margin-bottom: 30px; font-size: 2em; text-transform: uppercase; }
         .form-section { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
         .datos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .pattern-group { margin-bottom: 25px; position: relative; }
+        .pattern-group { margin-bottom: 25px; }
         h3 { color: var(--label-color); border-bottom: 2px solid var(--utility-btn-bg); padding-bottom: 10px; margin-top: 30px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--label-color); padding-right: 30px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--label-color); }
         input, textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 1em; font-family: inherit; background-color: var(--input-bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
         textarea { min-height: 80px; resize: vertical; }
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
-        #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+        #generate-btn:disabled { background: #5f6368; cursor: not-allowed; }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 20px; }
         h2 { color: var(--header-color); margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: var(--utility-btn-bg); color: var(--utility-btn-text); border: 1px solid var(--utility-btn-border); border-radius: 6px; cursor: pointer; }
         .hidden { display: none; }
-        
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background-color: var(--container-bg-color); padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal h4 { margin-top: 0; color: var(--header-color); }
-        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        
-        .snippet-btn { position: absolute; top: -2px; right: 0; background: none; border: none; cursor: pointer; color: var(--snippet-icon-color); padding: 4px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; opacity: 0.7; transition: opacity 0.2s; }
-        .snippet-btn:hover { opacity: 1; }
-        .snippet-btn svg { width: 16px; height: 16px; }
-        #snippet-list, #profile-list { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
-        #snippet-list li, #profile-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; }
-        #snippet-list li { cursor: pointer; }
-        #snippet-list li:hover { background-color: var(--result-bg-color); }
-        .delete-btn { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
-        #profile-list span { flex-grow: 1; }
+        #result-text { min-height: 250px; }
+        #recommendations-text { min-height: 150px; }
+        #keywords-text { min-height: 80px; }
+        .export-section { margin-top: 30px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        #export-pdf-btn { font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="top-controls">
-            <div class="control-group">
-                <label for="profile-select">Perfil:</label>
-                <select id="profile-select"></select>
-                <button id="manage-profiles-btn" title="Gestionar Perfiles">⚙️</button>
-            </div>
             <div class="control-group">
                 <label for="theme-select">Tema:</label>
                 <select id="theme-select">
@@ -91,100 +75,72 @@
             
             <div id="urgencias-fields" class="hidden">
                 <div class="form-section datos-grid">
-                    <div><label for="urg-fecha-hora">Fecha y Hora</label><input type="text" id="urg-fecha-hora"></div>
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
                     <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
                     <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
                     <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
                     <div id="urg-embarazo-container" class="hidden"><label for="urg-embarazo">Embarazo</label><select id="urg-embarazo"><option value="No">No</option><option value="Sí">Sí</option><option value="No sabe">No sabe</option></select></div>
                     <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
                 </div>
-                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><button type="button" class="snippet-btn" data-target="urg-motivo" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-motivo"></textarea></div>
-                <div class="pattern-group"><label for="urg-triaje">Constantes y Triaje</label><button type="button" class="snippet-btn" data-target="urg-triaje" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-triaje"></textarea></div>
-                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><button type="button" class="snippet-btn" data-target="urg-historia" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-historia"></textarea></div>
-                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes</label><button type="button" class="snippet-btn" data-target="urg-antecedentes" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-antecedentes"></textarea></div>
-                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><button type="button" class="snippet-btn" data-target="urg-exploracion" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-exploracion"></textarea></div>
-                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas</label><button type="button" class="snippet-btn" data-target="urg-pruebas" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-pruebas"></textarea></div>
-                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><button type="button" class="snippet-btn" data-target="urg-sospecha" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-sospecha"></textarea></div>
-                <div class="pattern-group"><label for="urg-plan">Plan Inmediato</label><button type="button" class="snippet-btn" data-target="urg-plan" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-plan"></textarea></div>
+                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><textarea id="urg-motivo" placeholder="Dolor torácico opresivo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-triaje">Constantes y Nivel de Triaje</label><textarea id="urg-triaje" placeholder="TA 150/90, FC 110 lpm, SatO2 96%, Nivel II..."></textarea></div>
+                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><textarea id="urg-historia" placeholder="Inicio de síntomas, evolución..."></textarea></div>
+                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes Relevantes</label><textarea id="urg-antecedentes" placeholder="Medicación crónica, tóxicos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><textarea id="urg-exploracion" placeholder="Auscultación, palpación, estado neurológico..."></textarea></div>
+                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas en Urgencias</label><textarea id="urg-pruebas" placeholder="Resultados de ECG, analítica, test rápidos..."></textarea></div>
+                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
+                <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
             </div>
             <div id="planta-fields" class="hidden">
                  <h3>Información Inicial</h3>
                  <div class="form-section datos-grid">
-                    <div><label for="planta-nombre">Nombre</label><input type="text" id="planta-nombre"></div>
+                    <div><label for="planta-nombre">Nombre del Paciente</label><input type="text" id="planta-nombre"></div>
                     <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
                     <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
                  </div>
-                 <h3>Bloque 1: Contexto</h3>
-                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><button type="button" class="snippet-btn" data-target="planta-motivo_ingreso" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-motivo_ingreso"></textarea></div>
-                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes</label><button type="button" class="snippet-btn" data-target="planta-antecedentes" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-antecedentes"></textarea></div>
-                 <h3>Bloque 2: Evaluación</h3>
-                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><button type="button" class="snippet-btn" data-target="planta-exploracion" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-exploracion"></textarea></div>
-                 <div class="pattern-group"><label for="planta-pruebas">Resultados Pruebas</label><button type="button" class="snippet-btn" data-target="planta-pruebas" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-pruebas"></textarea></div>
+                 <h3>Bloque 1: Contexto del Paciente</h3>
+                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
+                 <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
+                 <h3>Bloque 2: Evaluación Clínica</h3>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
                  <h3>Bloque 3: Plan de Actuación</h3>
-                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento</label><button type="button" class="snippet-btn" data-target="planta-tratamiento" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-tratamiento"></textarea></div>
-                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados</label><button type="button" class="snippet-btn" data-target="planta-cuidados" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-cuidados"></textarea></div>
-                 <div class="pattern-group"><label for="planta-intervenciones">Intervenciones</label><button type="button" class="snippet-btn" data-target="planta-intervenciones" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-intervenciones"></textarea></div>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
+                 <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
             </div>
             <div id="evolutivo-fields" class="hidden">
                  <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
-                 <div class="pattern-group"><label for="evo-resumen">Resumen Estado General</label><button type="button" class="snippet-btn" data-target="evo-resumen" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-resumen"></textarea></div>
-                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos</label><button type="button" class="snippet-btn" data-target="evo-cambios" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-cambios"></textarea></div>
-                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><button type="button" class="snippet-btn" data-target="evo-plan" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-plan"></textarea></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
             </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
 
             <div class="result-container">
-                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar</button></div>
+                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
-                <div class="result-header"><h2>Recomendaciones</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar</button></div>
+                <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
                 <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
-                <div class="result-header"><h3>Palabras Clave</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar</button></div>
-                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave..."></textarea>
+                <div class="result-header"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
+                
+                <div class="export-section">
+                    <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
+                </div>
             </div>
              <div style="margin-top: 20px; text-align: right;">
                  <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
             </div>
         </form>
     </div>
-
-    <!-- MODALES -->
-    <div id="snippet-modal" class="modal-backdrop hidden">
-        <div class="modal">
-            <h4 id="snippet-modal-title">Plantillas para...</h4>
-            <ul id="snippet-list"></ul>
-            <div>
-                <label for="new-snippet-name">Nombre plantilla:</label>
-                <input type="text" id="new-snippet-name" placeholder="Ej: Exploración normal">
-                <button type="button" id="save-snippet-btn" class="utility-btn" style="margin-top: 10px;">Guardar texto actual</button>
-            </div>
-            <div class="modal-buttons">
-                <button type="button" id="close-snippet-modal-btn" class="utility-btn">Cerrar</button>
-            </div>
-        </div>
-    </div>
-    <div id="profiles-modal" class="modal-backdrop hidden">
-        <div class="modal">
-            <h4>Gestionar Perfiles</h4>
-            <ul id="profile-list"></ul>
-            <div>
-                <label for="new-profile-name">Nuevo perfil:</label>
-                <input type="text" id="new-profile-name" placeholder="Ej: Neumología">
-                <button type="button" id="add-profile-btn" class="utility-btn" style="margin-top: 10px;">Crear Perfil</button>
-            </div>
-            <div class="modal-buttons">
-                <button type="button" id="close-profiles-modal-btn" class="utility-btn">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
+    
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- SECCIÓN 1: ELEMENTOS DEL DOM ---
         const DOMElements = {
             contextoSelector: document.getElementById('contexto-informe'),
-            profileSelect: document.getElementById('profile-select'),
-            manageProfilesBtn: document.getElementById('manage-profiles-btn'),
             themeSelect: document.getElementById('theme-select'),
             formSections: {
                 urgencias: document.getElementById('urgencias-fields'),
@@ -194,163 +150,7 @@
             allFormInputs: document.querySelectorAll('#note-form input, #note-form textarea, #note-form select'),
             clearBtn: document.getElementById('clear-btn'),
             generateBtn: document.getElementById('generate-btn'),
-            profilesModal: document.getElementById('profiles-modal'),
-            profileList: document.getElementById('profile-list'),
-            newProfileNameInput: document.getElementById('new-profile-name'),
-            addProfileBtn: document.getElementById('add-profile-btn'),
-            closeProfilesModalBtn: document.getElementById('close-profiles-modal-btn'),
-            snippetModal: document.getElementById('snippet-modal'),
-            snippetModalTitle: document.getElementById('snippet-modal-title'),
-            snippetList: document.getElementById('snippet-list'),
-            newSnippetNameInput: document.getElementById('new-snippet-name'),
-            saveSnippetBtn: document.getElementById('save-snippet-btn'),
-            closeSnippetModalBtn: document.getElementById('close-snippet-modal-btn'),
-        };
-        let currentSnippetTargetId = null;
-        let appData = {};
-
-        // --- SECCIÓN 2: GESTIÓN DE DATOS ---
-        const DataManager = {
-            load() {
-                try {
-                    const data = localStorage.getItem('axiomNoteProfiles_v2');
-                    appData = data ? JSON.parse(data) : this.getDefaults();
-                } catch (e) {
-                    appData = this.getDefaults();
-                }
-            },
-            save() {
-                localStorage.setItem('axiomNoteProfiles_v2', JSON.stringify(appData));
-            },
-            getDefaults: () => ({
-                profiles: [{ id: 'default', name: 'General' }],
-                activeProfileId: 'default',
-                snippets: { 'default': {} }
-            })
-        };
-
-        // --- SECCIÓN 3: MÓDULOS DE FUNCIONALIDAD ---
-        const ProfileManager = {
-            init() {
-                DOMElements.manageProfilesBtn.addEventListener('click', this.openModal);
-                DOMElements.addProfileBtn.addEventListener('click', this.add);
-                DOMElements.closeProfilesModalBtn.addEventListener('click', this.closeModal);
-                DOMElements.profilesModal.addEventListener('click', (e) => { if(e.target === DOMElements.profilesModal) this.closeModal(); });
-                DOMElements.profileSelect.addEventListener('change', this.setActive);
-                this.populateSelector();
-            },
-            populateSelector() {
-                DOMElements.profileSelect.innerHTML = '';
-                appData.profiles.forEach(p => {
-                    const option = new Option(p.name, p.id);
-                    DOMElements.profileSelect.add(option);
-                });
-                DOMElements.profileSelect.value = appData.activeProfileId;
-            },
-            renderList() {
-                DOMElements.profileList.innerHTML = '';
-                appData.profiles.forEach(p => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span>${p.name}</span>`;
-                    if (p.id !== 'default') {
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'delete-btn';
-                        deleteBtn.textContent = 'X';
-                        deleteBtn.onclick = () => this.delete(p.id);
-                        li.appendChild(deleteBtn);
-                    }
-                    DOMElements.profileList.appendChild(li);
-                });
-            },
-            add() {
-                const name = DOMElements.newProfileNameInput.value.trim();
-                if (name && !appData.profiles.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-                    const newId = `profile_${Date.now()}`;
-                    appData.profiles.push({ id: newId, name: name });
-                    appData.snippets[newId] = {};
-                    DOMElements.newProfileNameInput.value = '';
-                    DataManager.save();
-                    this.populateSelector();
-                    this.renderList();
-                }
-            },
-            delete(profileId) {
-                if (confirm('¿Borrar este perfil y todas sus plantillas?')) {
-                    appData.profiles = appData.profiles.filter(p => p.id !== profileId);
-                    delete appData.snippets[profileId];
-                    if (appData.activeProfileId === profileId) appData.activeProfileId = 'default';
-                    DataManager.save();
-                    this.populateSelector();
-                    this.renderList();
-                }
-            },
-            setActive() {
-                appData.activeProfileId = DOMElements.profileSelect.value;
-                DataManager.save();
-            },
-            openModal() {
-                ProfileManager.renderList();
-                DOMElements.profilesModal.classList.remove('hidden');
-            },
-            closeModal() {
-                DOMElements.profilesModal.classList.add('hidden');
-            }
-        };
-
-        const SnippetManager = {
-            init() {
-                 document.querySelectorAll('.snippet-btn').forEach(btn => btn.addEventListener('click', () => this.openModal(btn.dataset.target)));
-                 DOMElements.saveSnippetBtn.addEventListener('click', this.save);
-                 DOMElements.closeSnippetModalBtn.addEventListener('click', this.closeModal);
-                 DOMElements.snippetModal.addEventListener('click', (e) => { if(e.target === DOMElements.snippetModal) this.closeModal(); });
-            },
-            get(targetId) {
-                const profileSnippets = appData.snippets[appData.activeProfileId] || {};
-                return profileSnippets[targetId] || [];
-            },
-            saveCurrent(targetId, snippets) {
-                const activeId = appData.activeProfileId;
-                if (!appData.snippets[activeId]) appData.snippets[activeId] = {};
-                appData.snippets[activeId][targetId] = snippets;
-                DataManager.save();
-                this.render(targetId);
-            },
-            render(targetId) {
-                DOMElements.snippetList.innerHTML = '';
-                const snippets = this.get(targetId);
-                if (snippets.length === 0) { DOMElements.snippetList.innerHTML = '<li>No hay plantillas guardadas.</li>'; return; }
-                snippets.forEach((snippet, index) => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span>${snippet.name}</span> <button class="delete-btn">X</button>`;
-                    li.querySelector('span').onclick = () => {
-                        document.getElementById(targetId).value = snippet.content;
-                        document.getElementById(targetId).dispatchEvent(new Event('input'));
-                        this.closeModal();
-                    };
-                    li.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); snippets.splice(index, 1); this.saveCurrent(targetId, snippets); };
-                    DOMElements.snippetList.appendChild(li);
-                });
-            },
-            save() {
-                const name = DOMElements.newSnippetNameInput.value.trim();
-                const content = document.getElementById(currentSnippetTargetId).value;
-                if(name && content) {
-                    const snippets = SnippetManager.get(currentSnippetTargetId);
-                    snippets.push({name, content});
-                    SnippetManager.saveCurrent(currentSnippetTargetId, snippets);
-                    DOMElements.newSnippetNameInput.value = '';
-                } else {
-                    alert('Se necesita un nombre y contenido.');
-                }
-            },
-            openModal(targetId) {
-                currentSnippetTargetId = targetId;
-                DOMElements.snippetModalTitle.textContent = `Plantillas para "${document.querySelector(`label[for='${targetId}']`).textContent}"`;
-                DOMElements.newSnippetNameInput.value = '';
-                this.render(targetId);
-                DOMElements.snippetModal.classList.remove('hidden');
-            },
-            closeModal() { DOMElements.snippetModal.classList.add('hidden'); }
+            exportPdfBtn: document.getElementById('export-pdf-btn'),
         };
 
         const FormManager = {
@@ -363,8 +163,11 @@
             saveState() {
                 const contexto = DOMElements.contextoSelector.value;
                 const data = {};
-                DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(el => { data[el.id] = el.value; });
-                localStorage.setItem(`axiomNoteData_${contexto}`, JSON.stringify(data));
+                const activeForm = DOMElements.formSections[contexto];
+                if (activeForm) {
+                    activeForm.querySelectorAll('input, textarea, select').forEach(el => { data[el.id] = el.value; });
+                    localStorage.setItem(`axiomNoteData_${contexto}`, JSON.stringify(data));
+                }
             },
             loadState(contexto) {
                 const savedData = localStorage.getItem(`axiomNoteData_${contexto}`);
@@ -387,10 +190,13 @@
             },
             clear() {
                 const contexto = DOMElements.contextoSelector.value;
-                DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
-                    if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = '';
-                });
-                localStorage.removeItem(`axiomNoteData_${contexto}`);
+                const activeForm = DOMElements.formSections[contexto];
+                if (activeForm) {
+                    activeForm.querySelectorAll('input, textarea, select').forEach(field => {
+                        if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = '';
+                    });
+                    localStorage.removeItem(`axiomNoteData_${contexto}`);
+                }
             }
         };
 
@@ -399,8 +205,8 @@
                 const savedTheme = localStorage.getItem('theme') || 'light';
                 this.apply(savedTheme);
                 DOMElements.themeSelect.value = savedTheme;
-                DOMElements.themeSelect.addEventListener('change', () => {
-                    const newTheme = DOMElements.themeSelect.value;
+                DOMElements.themeSelect.addEventListener('change', (e) => {
+                    const newTheme = e.target.value;
                     localStorage.setItem('theme', newTheme);
                     this.apply(newTheme);
                 });
@@ -408,17 +214,97 @@
             apply(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
         };
         
+        async function generateNote() {
+            DOMElements.generateBtn.disabled = true;
+            DOMElements.generateBtn.textContent = "Generando...";
+            // Lógica de llamada a API (simulada)
+            setTimeout(() => {
+                 document.getElementById('result-text').value = "Paciente varón de 65 años que acude a urgencias por dolor torácico opresivo de dos horas de evolución.";
+                 document.getElementById('recommendations-text').value = "Se recomienda ingreso en planta para monitorización y completar estudio cardiológico.";
+                 document.getElementById('keywords-text').value = "Dolor torácico, SCA, ECG, Troponinas";
+                 DOMElements.generateBtn.disabled = false;
+                 DOMElements.generateBtn.textContent = "Generar Texto";
+            }, 2000);
+        }
+        
+        function exportToPDF() {
+            const reportText = document.getElementById('result-text').value;
+            if (!reportText.trim()) {
+                alert('No hay informe generado para exportar.');
+                return;
+            }
+
+            const contexto = DOMElements.contextoSelector.value;
+            const nombreEl = document.getElementById(`${contexto}-nombre`);
+            const edadEl = document.getElementById(`${contexto}-edad`);
+            const fechaEl = document.getElementById(`${contexto}-fecha-hora`);
+
+            const nombre = (nombreEl ? nombreEl.value : '') || 'N/A';
+            const edad = (edadEl ? edadEl.value : '') || 'N/A';
+            const fecha = (fechaEl ? fechaEl.value : '') || new Date().toLocaleString('es-ES');
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("Times-Roman");
+            let y = 20;
+
+            doc.setFontSize(18);
+            doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
+            y += 15;
+
+            doc.setFontSize(12);
+            doc.text(`Paciente: ${nombre}`, 15, y);
+            doc.text(`Edad: ${edad}`, 15, y + 7);
+            doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
+            y += 28;
+
+            doc.setLineWidth(0.5);
+            doc.line(15, y, 195, y);
+            y += 10;
+            
+            const addSection = (title, textContent) => {
+                if (!textContent.trim()) return;
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text(title, 15, y);
+                y += 8;
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                const splitText = doc.splitTextToSize(textContent, 180);
+                
+                splitText.forEach(line => {
+                    if (y > 280) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(line, 15, y);
+                    y += 7;
+                });
+                y += 10;
+            };
+
+            const recsText = document.getElementById('recommendations-text').value;
+            const keywordsText = document.getElementById('keywords-text').value;
+
+            addSection("Nota de Evolución", reportText);
+            addSection("Recomendaciones y Plan", recsText);
+            addSection("Resumen (Palabras Clave)", keywordsText);
+            
+            const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
+            doc.save(fileName);
+        }
+
+        DOMElements.generateBtn.addEventListener('click', generateNote);
+        DOMElements.exportPdfBtn.addEventListener('click', exportToPDF);
+        
         const App = {
             init() {
-                DataManager.load();
-                ProfileManager.init();
-                SnippetManager.init();
                 FormManager.init();
                 ThemeManager.init();
             }
         };
 
-        // --- INICIAR LA APLICACIÓN ---
         App.init();
     });
     </script>
