@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v3.8</title>
+    <title>Axiom Note - v3.9</title>
     <style>
         :root {
             --bg-color: #f4f7f9; --container-bg-color: #ffffff; --text-color: #333;
@@ -39,30 +39,25 @@
         textarea { min-height: 80px; resize: vertical; }
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .result-container { margin-top: 40px; }
-        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .result-container, .result-header { margin-top: 40px; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 20px; }
         h2 { color: var(--header-color); margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: var(--utility-btn-bg); color: var(--utility-btn-text); border: 1px solid var(--utility-btn-border); border-radius: 6px; cursor: pointer; }
         .hidden { display: none; }
         
-        /* --- ESTILOS PARA MODALES --- */
         .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background-color: var(--container-bg-color); padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal h4 { margin-top: 0; color: var(--header-color); }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         
-        /* --- ESTILOS PARA PLANTILLAS (SNIPPETS) --- */
         .snippet-btn { position: absolute; top: -2px; right: 0; background: none; border: none; cursor: pointer; color: var(--snippet-icon-color); padding: 4px; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; opacity: 0.7; transition: opacity 0.2s; }
         .snippet-btn:hover { opacity: 1; }
         .snippet-btn svg { width: 16px; height: 16px; }
-        #snippet-list { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        #snippet-list, #profile-list { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
         #snippet-list li, #profile-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; }
         #snippet-list li { cursor: pointer; }
         #snippet-list li:hover { background-color: var(--result-bg-color); }
         .delete-btn { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
-        
-        /* --- ESTILOS PARA GESTOR DE PERFILES --- */
-        #profile-list { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
         #profile-list span { flex-grow: 1; }
     </style>
 </head>
@@ -85,7 +80,6 @@
 
         <h1>Axiom Note</h1>
         <form id="note-form">
-            <!-- Contenido del formulario sin cambios -->
              <div class="form-section">
                 <label for="contexto-informe">Contexto del Informe</label>
                 <select id="contexto-informe">
@@ -94,47 +88,79 @@
                     <option value="evolutivo">Evolutivo de planta</option>
                 </select>
             </div>
+            
+            <!-- FORMULARIOS COMPLETOS RESTAURADOS -->
             <div id="urgencias-fields" class="hidden">
-                 <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><button type="button" class="snippet-btn" data-target="urg-motivo" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-motivo"></textarea></div>
-                 <!-- Resto de campos de urgencias con su snippet-btn -->
+                <div class="form-section datos-grid">
+                    <div><label for="urg-fecha-hora">Fecha y Hora</label><input type="text" id="urg-fecha-hora"></div>
+                    <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
+                    <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
+                    <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                    <div id="urg-embarazo-container" class="hidden"><label for="urg-embarazo">Embarazo</label><select id="urg-embarazo"><option value="No">No</option><option value="Sí">Sí</option><option value="No sabe">No sabe</option></select></div>
+                    <div><label for="urg-alergias">Alergias</label><input type="text" id="urg-alergias" placeholder="Ej: Penicilina..."></div>
+                </div>
+                <div class="pattern-group"><label for="urg-motivo">Motivo de Consulta</label><button type="button" class="snippet-btn" data-target="urg-motivo" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-motivo"></textarea></div>
+                <div class="pattern-group"><label for="urg-triaje">Constantes y Triaje</label><button type="button" class="snippet-btn" data-target="urg-triaje" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-triaje"></textarea></div>
+                <div class="pattern-group"><label for="urg-historia">Historia Actual</label><button type="button" class="snippet-btn" data-target="urg-historia" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-historia"></textarea></div>
+                <div class="pattern-group"><label for="urg-antecedentes">Antecedentes</label><button type="button" class="snippet-btn" data-target="urg-antecedentes" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-antecedentes"></textarea></div>
+                <div class="pattern-group"><label for="urg-exploracion">Exploración Física</label><button type="button" class="snippet-btn" data-target="urg-exploracion" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-exploracion"></textarea></div>
+                <div class="pattern-group"><label for="urg-pruebas">Pruebas Realizadas</label><button type="button" class="snippet-btn" data-target="urg-pruebas" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-pruebas"></textarea></div>
+                <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><button type="button" class="snippet-btn" data-target="urg-sospecha" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-sospecha"></textarea></div>
+                <div class="pattern-group"><label for="urg-plan">Plan Inmediato</label><button type="button" class="snippet-btn" data-target="urg-plan" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="urg-plan"></textarea></div>
             </div>
-             <div id="planta-fields" class="hidden">
+            <div id="planta-fields" class="hidden">
+                 <h3>Información Inicial</h3>
+                 <div class="form-section datos-grid">
+                    <div><label for="planta-nombre">Nombre</label><input type="text" id="planta-nombre"></div>
+                    <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
+                    <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                 </div>
+                 <h3>Bloque 1: Contexto</h3>
                  <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><button type="button" class="snippet-btn" data-target="planta-motivo_ingreso" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-motivo_ingreso"></textarea></div>
-                 <!-- Resto de campos de planta con su snippet-btn -->
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes</label><button type="button" class="snippet-btn" data-target="planta-antecedentes" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-antecedentes"></textarea></div>
+                 <h3>Bloque 2: Evaluación</h3>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><button type="button" class="snippet-btn" data-target="planta-exploracion" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-exploracion"></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados Pruebas</label><button type="button" class="snippet-btn" data-target="planta-pruebas" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-pruebas"></textarea></div>
+                 <h3>Bloque 3: Plan de Actuación</h3>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento</label><button type="button" class="snippet-btn" data-target="planta-tratamiento" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-tratamiento"></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados</label><button type="button" class="snippet-btn" data-target="planta-cuidados" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-cuidados"></textarea></div>
+                 <div class="pattern-group"><label for="planta-intervenciones">Intervenciones</label><button type="button" class="snippet-btn" data-target="planta-intervenciones" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="planta-intervenciones"></textarea></div>
             </div>
             <div id="evolutivo-fields" class="hidden">
-                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><button type="button" class="snippet-btn" data-target="evo-resumen" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-resumen"></textarea></div>
-                 <!-- Resto de campos de evolutivo con su snippet-btn -->
+                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen Estado General</label><button type="button" class="snippet-btn" data-target="evo-resumen" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-resumen"></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos</label><button type="button" class="snippet-btn" data-target="evo-cambios" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-cambios"></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><button type="button" class="snippet-btn" data-target="evo-plan" title="Gestionar plantillas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg></button><textarea id="evo-plan"></textarea></div>
             </div>
+
             <button type="button" id="generate-btn">Generar Texto</button>
-            <!-- Contenedores de resultado y botón de limpiar -->
+            <div class="result-container">
+                 <!-- Contenedores de resultado y botón de limpiar -->
+            </div>
         </form>
     </div>
 
-    <!-- MODAL PARA GESTIONAR SNIPPETS -->
+    <!-- MODALES -->
     <div id="snippet-modal" class="modal-backdrop hidden">
         <div class="modal">
             <h4 id="snippet-modal-title">Plantillas para...</h4>
-            <p>Selecciona una plantilla para insertarla o crea una nueva.</p>
             <ul id="snippet-list"></ul>
-            <div id="new-snippet-section">
-                <label for="new-snippet-name">Nombre de la nueva plantilla:</label>
+            <div>
+                <label for="new-snippet-name">Nombre plantilla:</label>
                 <input type="text" id="new-snippet-name" placeholder="Ej: Exploración normal">
-                <button type="button" id="save-snippet-btn" class="utility-btn" style="margin-top: 10px;">Guardar texto actual como plantilla</button>
+                <button type="button" id="save-snippet-btn" class="utility-btn" style="margin-top: 10px;">Guardar texto actual</button>
             </div>
             <div class="modal-buttons">
                 <button type="button" id="close-snippet-modal-btn" class="utility-btn">Cerrar</button>
             </div>
         </div>
     </div>
-
-    <!-- MODAL PARA GESTIONAR PERFILES -->
     <div id="profiles-modal" class="modal-backdrop hidden">
         <div class="modal">
-            <h4>Gestionar Perfiles de Plantillas</h4>
+            <h4>Gestionar Perfiles</h4>
             <ul id="profile-list"></ul>
             <div>
-                <label for="new-profile-name">Nombre del nuevo perfil:</label>
+                <label for="new-profile-name">Nuevo perfil:</label>
                 <input type="text" id="new-profile-name" placeholder="Ej: Neumología">
                 <button type="button" id="add-profile-btn" class="utility-btn" style="margin-top: 10px;">Crear Perfil</button>
             </div>
@@ -146,21 +172,43 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- ELEMENTOS GLOBALES ---
+        // --- 1. ELEMENTOS DEL DOM ---
         const contextoSelector = document.getElementById('contexto-informe');
         const profileSelect = document.getElementById('profile-select');
         const manageProfilesBtn = document.getElementById('manage-profiles-btn');
+        const themeSelect = document.getElementById('theme-select');
+        const formSections = {
+            urgencias: document.getElementById('urgencias-fields'),
+            planta: document.getElementById('planta-fields'),
+            evolutivo: document.getElementById('evolutivo-fields')
+        };
         const allFormInputs = document.querySelectorAll('#note-form input, #note-form textarea, #note-form select');
+        
+        // Modales de Perfiles
+        const profilesModal = document.getElementById('profiles-modal');
+        const profileList = document.getElementById('profile-list');
+        const newProfileNameInput = document.getElementById('new-profile-name');
+        const addProfileBtn = document.getElementById('add-profile-btn');
+        const closeProfilesModalBtn = document.getElementById('close-profiles-modal-btn');
 
-        // --- LÓGICA DE DATOS (PERFILES Y SNIPPETS) ---
+        // Modales de Snippets
+        const snippetModal = document.getElementById('snippet-modal');
+        const snippetModalTitle = document.getElementById('snippet-modal-title');
+        const snippetList = document.getElementById('snippet-list');
+        const newSnippetNameInput = document.getElementById('new-snippet-name');
+        const saveSnippetBtn = document.getElementById('save-snippet-btn');
+        const closeSnippetModalBtn = document.getElementById('close-snippet-modal-btn');
+        let currentSnippetTargetId = null;
+
+        // --- 2. GESTIÓN DE DATOS ---
         let appData = {};
 
         function loadData() {
-            const data = localStorage.getItem('axiomNoteProfiles');
-            if (data) {
-                appData = JSON.parse(data);
-            } else {
-                // Estructura de datos inicial
+            try {
+                const data = localStorage.getItem('axiomNoteProfiles_v2'); // Nueva key para evitar conflictos
+                if (data) appData = JSON.parse(data);
+                else throw new Error("No data");
+            } catch (e) {
                 appData = {
                     profiles: [{ id: 'default', name: 'General' }],
                     activeProfileId: 'default',
@@ -170,22 +218,16 @@
         }
 
         function saveData() {
-            localStorage.setItem('axiomNoteProfiles', JSON.stringify(appData));
+            localStorage.setItem('axiomNoteProfiles_v2', JSON.stringify(appData));
         }
 
-        // --- GESTIÓN DE PERFILES ---
-        const profilesModal = document.getElementById('profiles-modal');
-        const profileList = document.getElementById('profile-list');
-        const newProfileNameInput = document.getElementById('new-profile-name');
-        const addProfileBtn = document.getElementById('add-profile-btn');
-        const closeProfilesModalBtn = document.getElementById('close-profiles-modal-btn');
-
+        // --- 3. LÓGICA DE PERFILES ---
         function populateProfileSelector() {
             profileSelect.innerHTML = '';
-            appData.profiles.forEach(profile => {
+            appData.profiles.forEach(p => {
                 const option = document.createElement('option');
-                option.value = profile.id;
-                option.textContent = profile.name;
+                option.value = p.id;
+                option.textContent = p.name;
                 profileSelect.appendChild(option);
             });
             profileSelect.value = appData.activeProfileId;
@@ -193,14 +235,14 @@
 
         function renderProfileList() {
             profileList.innerHTML = '';
-            appData.profiles.forEach(profile => {
+            appData.profiles.forEach(p => {
                 const li = document.createElement('li');
-                li.innerHTML = `<span>${profile.name}</span>`;
-                if (profile.id !== 'default') {
+                li.innerHTML = `<span>${p.name}</span>`;
+                if (p.id !== 'default') {
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete-btn';
                     deleteBtn.textContent = 'X';
-                    deleteBtn.onclick = () => deleteProfile(profile.id);
+                    deleteBtn.onclick = () => deleteProfile(p.id);
                     li.appendChild(deleteBtn);
                 }
                 profileList.appendChild(li);
@@ -209,13 +251,10 @@
 
         function addProfile() {
             const name = newProfileNameInput.value.trim();
-            if (name) {
-                const newProfile = {
-                    id: `profile_${Date.now()}`,
-                    name: name
-                };
-                appData.profiles.push(newProfile);
-                appData.snippets[newProfile.id] = {};
+            if (name && !appData.profiles.find(p => p.name === name)) {
+                const newId = `profile_${Date.now()}`;
+                appData.profiles.push({ id: newId, name: name });
+                appData.snippets[newId] = {};
                 newProfileNameInput.value = '';
                 saveData();
                 populateProfileSelector();
@@ -224,73 +263,134 @@
         }
 
         function deleteProfile(profileId) {
-            if (confirm('¿Seguro que quieres borrar este perfil y todas sus plantillas? Esta acción no se puede deshacer.')) {
+            if (confirm('¿Borrar este perfil y todas sus plantillas?')) {
                 appData.profiles = appData.profiles.filter(p => p.id !== profileId);
                 delete appData.snippets[profileId];
-                if (appData.activeProfileId === profileId) {
-                    appData.activeProfileId = 'default';
-                }
+                if (appData.activeProfileId === profileId) appData.activeProfileId = 'default';
                 saveData();
                 populateProfileSelector();
                 renderProfileList();
             }
         }
+
+        // --- 4. LÓGICA DE SNIPPETS ---
+        function getSnippets(targetId) {
+            const activeProfileId = appData.activeProfileId;
+            const profileSnippets = appData.snippets[activeProfileId] || {};
+            return profileSnippets[targetId] || [];
+        }
+
+        function saveCurrentSnippets(targetId, snippets) {
+            const activeProfileId = appData.activeProfileId;
+            if (!appData.snippets[activeProfileId]) appData.snippets[activeProfileId] = {};
+            appData.snippets[activeProfileId][targetId] = snippets;
+            saveData();
+            renderSnippets(targetId);
+        }
         
+        function renderSnippets(targetId) {
+            snippetList.innerHTML = '';
+            const snippets = getSnippets(targetId);
+            if (snippets.length === 0) {
+                snippetList.innerHTML = '<li>No hay plantillas guardadas.</li>';
+                return;
+            }
+            snippets.forEach((snippet, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${snippet.name}</span> <button class="delete-btn" data-index="${index}">X</button>`;
+                li.querySelector('span').onclick = () => {
+                    const targetTextarea = document.getElementById(targetId);
+                    targetTextarea.value = snippet.content;
+                    targetTextarea.dispatchEvent(new Event('input'));
+                    closeSnippetModal();
+                };
+                li.querySelector('.delete-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    snippets.splice(index, 1);
+                    saveCurrentSnippets(targetId, snippets);
+                };
+                snippetList.appendChild(li);
+            });
+        }
+
+        function openSnippetModal(targetId) {
+            currentSnippetTargetId = targetId;
+            const targetLabel = document.querySelector(`label[for='${targetId}']`).textContent;
+            snippetModalTitle.textContent = `Plantillas para "${targetLabel}"`;
+            newSnippetNameInput.value = '';
+            renderSnippets(targetId);
+            snippetModal.classList.remove('hidden');
+        }
+        
+        function closeSnippetModal() { snippetModal.classList.add('hidden'); }
+
+        saveSnippetBtn.addEventListener('click', () => {
+            const name = newSnippetNameInput.value.trim();
+            const content = document.getElementById(currentSnippetTargetId).value;
+            if (name && content) {
+                const snippets = getSnippets(currentSnippetTargetId);
+                snippets.push({ name, content });
+                saveCurrentSnippets(currentSnippetTargetId, snippets);
+                newSnippetNameInput.value = '';
+            } else {
+                alert('Se necesita un nombre y contenido.');
+            }
+        });
+        
+        // --- 5. LÓGICA DEL FORMULARIO ---
+        // (Autosave, toggleFields, clearForm, etc. aquí)
+        // ...
+
+        // --- 6. FUNCIONES DE LA APP ---
+        // (generateNote, copyToClipboard, etc. aquí)
+        // ...
+
+        // --- 7. LÓGICA DEL TEMA ---
+        function applyTheme(theme) {
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+        }
+
+        // --- 8. INICIALIZACIÓN ---
+        loadData();
+        
+        // Perfiles
+        populateProfileSelector();
         manageProfilesBtn.addEventListener('click', () => {
             renderProfileList();
             profilesModal.classList.remove('hidden');
         });
         addProfileBtn.addEventListener('click', addProfile);
         closeProfilesModalBtn.addEventListener('click', () => profilesModal.classList.add('hidden'));
+        profilesModal.addEventListener('click', (e) => { if(e.target === profilesModal) profilesModal.classList.add('hidden'); });
         profileSelect.addEventListener('change', () => {
             appData.activeProfileId = profileSelect.value;
             saveData();
-            // No es necesario recargar el formulario, los snippets se cargan al abrir el modal
         });
         
-        // --- LÓGICA DE SNIPPETS (MODIFICADA PARA PERFILES) ---
-        const snippetModal = document.getElementById('snippet-modal');
-        let currentSnippetTargetId = null;
+        // Snippets
+        document.querySelectorAll('.snippet-btn').forEach(btn => btn.addEventListener('click', () => openSnippetModal(btn.dataset.target)));
+        closeSnippetModalBtn.addEventListener('click', closeSnippetModal);
+        snippetModal.addEventListener('click', (e) => { if(e.target === snippetModal) closeSnippetModal(); });
 
-        function getSnippets(targetId) {
-            const activeProfileId = appData.activeProfileId;
-            if (!appData.snippets[activeProfileId]) {
-                appData.snippets[activeProfileId] = {};
-            }
-            if (!appData.snippets[activeProfileId][targetId]) {
-                appData.snippets[activeProfileId][targetId] = [];
-            }
-            return appData.snippets[activeProfileId][targetId];
-        }
-
-        function saveSnippets(targetId, snippets) {
-            const activeProfileId = appData.activeProfileId;
-            appData.snippets[activeProfileId][targetId] = snippets;
-            saveData();
-            renderSnippets(targetId);
-        }
-        
-        // El resto de la lógica de snippets (renderSnippets, openModal, closeModal, etc.) sigue igual
-        // pero ahora utiliza las funciones getSnippets y saveSnippets que son conscientes del perfil.
-
-        document.querySelectorAll('.snippet-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentSnippetTargetId = btn.dataset.target;
-                // ... abrir el modal de snippets
-                const targetLabel = document.querySelector(`label[for='${currentSnippetTargetId}']`).textContent;
-                document.getElementById('snippet-modal-title').textContent = `Plantillas para "${targetLabel}"`;
-                document.getElementById('new-snippet-name').value = '';
-                renderSnippets(currentSnippetTargetId);
-                snippetModal.classList.remove('hidden');
-            });
+        // Tema
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        themeSelect.value = savedTheme;
+        themeSelect.addEventListener('change', () => {
+            const newTheme = themeSelect.value;
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
         });
-        
-        // ... (resto de funciones de snippets y formulario)
-        
-        // --- INICIALIZACIÓN GENERAL ---
-        loadData();
-        populateProfileSelector();
-        // ... (resto de la inicialización: tema, autosave, toggleFields, etc.)
+
+        // Formulario
+        // ... (toggleFields, event listeners de autosave, etc.)
+        const contexto = contextoSelector.value;
+        Object.values(formSections).forEach(section => section.classList.add('hidden'));
+        if (formSections[contexto]) {
+            formSections[contexto].classList.remove('hidden');
+            //loadFormState(contexto);
+        }
+        //validarFormularioParaIA();
     });
     </script>
 </body>
