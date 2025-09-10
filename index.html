@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v2.6</title>
+    <title>Axiom Note - v2.7</title>
     <style>
         body { font-family: "Times New Roman", Times, serif; background-color: #f4f7f9; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
@@ -61,25 +61,24 @@
                 <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
             </div>
 
-            <!-- ##### FORMULARIO DE INGRESO EN PLANTA (ACTUALIZADO CON TU SUGERENCIA) ##### -->
+            <!-- FORMULARIO DE INGRESO EN PLANTA (NUEVA ESTRUCTURA SIMPLIFICADA) -->
             <div id="planta-fields" class="hidden">
+                 <h3>Información Inicial</h3>
                  <div class="form-section datos-grid">
-                    <div><label for="planta-nombre">Nombre</label><input type="text" id="planta-nombre"></div>
+                    <div><label for="planta-nombre">Nombre del Paciente</label><input type="text" id="planta-nombre"></div>
                     <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
                     <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
                  </div>
+
                  <h3>Bloque 1: Contexto del Paciente</h3>
-                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso y Resumen del Caso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
-                 <div class="pattern-group"><label for="planta-alergias">Alergias Conocidas</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
+                 <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
                  <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales (Comorbilidades, Quirúrgicos, Psiquiátricos)</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
-                 <div class="pattern-group"><label for="planta-medicacion">Medicación Domiciliaria</label><textarea id="planta-medicacion" placeholder="Ej: Enalapril 20mg, Metformina 850mg, AAS 100mg."></textarea></div>
-                 <div class="pattern-group"><label for="planta-funcional-social">Valoración Funcional y Social</label><textarea id="planta-funcional-social" placeholder="Ej: Independiente para ABVD, riesgo de caídas bajo. Vive solo, cuenta con apoyo familiar."></textarea></div>
 
                  <h3>Bloque 2: Evaluación Clínica</h3>
                  <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
                  <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
-                 <div class="pattern-group"><label for="planta-diagnostico">Diagnóstico(s) de Ingreso</label><textarea id="planta-diagnostico" placeholder="Ej: 1. Insuficiencia Cardíaca Congestiva descompensada. 2. Infección respiratoria."></textarea></div>
-                 
+
                  <h3>Bloque 3: Plan de Actuación</h3>
                  <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
                  <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
@@ -116,6 +115,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- IDENTIFICACIÓN DE TODOS LOS ELEMENTOS ---
             const contextoSelector = document.getElementById('contexto-informe');
             const urgenciasFields = document.getElementById('urgencias-fields');
             const plantaFields = document.getElementById('planta-fields');
@@ -132,6 +132,7 @@
             const noteForm = document.getElementById('note-form');
             const clearBtn = document.getElementById('clear-btn');
 
+            // --- LÓGICA PARA MOSTRAR/OCULTAR FORMULARIOS ---
             function toggleFields() {
                 const contexto = contextoSelector.value;
                 urgenciasFields.classList.toggle('hidden', contexto !== 'urgencias');
@@ -141,6 +142,7 @@
             }
             contextoSelector.addEventListener('change', toggleFields);
             
+            // --- LÓGICA PARA CAMPO DE EMBARAZO ---
             function toggleEmbarazoField() {
                 if (sexoSelector && sexoSelector.value === 'Mujer') {
                     embarazoContainer.classList.remove('hidden');
@@ -152,6 +154,7 @@
                 sexoSelector.addEventListener('change', toggleEmbarazoField);
             }
 
+            // --- LÓGICA PARA RELLENAR FECHAS AUTOMÁTICAS ---
             function setDateTime(fieldId) {
                 const field = document.getElementById(fieldId);
                 if (field) {
@@ -161,6 +164,7 @@
                 }
             }
             
+            // --- LÓGICA DE VALIDACIÓN DEL BOTÓN "GENERAR" ---
             const textosAIgnorar = ['.', '-', 'na', 's/c', 'nada', 'ninguno', 'pendiente'];
             const camposValidables = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
 
@@ -190,6 +194,7 @@
                 campo.addEventListener('input', validarFormularioParaIA);
             });
 
+            // --- INICIALIZACIÓN DE LA PÁGINA ---
             toggleFields(); 
             if (sexoSelector) {
                 toggleEmbarazoField();
@@ -198,6 +203,7 @@
             setDateTime('evo-fecha-hora');
             validarFormularioParaIA();
 
+            // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
             async function generateNote() {
                 generateBtn.disabled = true;
                 generateBtn.textContent = "Generando...";
