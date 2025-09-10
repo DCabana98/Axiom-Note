@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v4.1</title>
+    <title>Axiom Note - v4.2</title>
     <style>
         :root {
             --bg-color: #f4f7f9; --container-bg-color: #ffffff; --text-color: #333;
@@ -181,210 +181,245 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- SECCIÓN 1: ELEMENTOS DEL DOM ---
-        const contextoSelector = document.getElementById('contexto-informe');
-        const profileSelect = document.getElementById('profile-select');
-        const manageProfilesBtn = document.getElementById('manage-profiles-btn');
-        const themeSelect = document.getElementById('theme-select');
-        const formSections = {
-            urgencias: document.getElementById('urgencias-fields'),
-            planta: document.getElementById('planta-fields'),
-            evolutivo: document.getElementById('evolutivo-fields')
+        const DOMElements = {
+            contextoSelector: document.getElementById('contexto-informe'),
+            profileSelect: document.getElementById('profile-select'),
+            manageProfilesBtn: document.getElementById('manage-profiles-btn'),
+            themeSelect: document.getElementById('theme-select'),
+            formSections: {
+                urgencias: document.getElementById('urgencias-fields'),
+                planta: document.getElementById('planta-fields'),
+                evolutivo: document.getElementById('evolutivo-fields')
+            },
+            allFormInputs: document.querySelectorAll('#note-form input, #note-form textarea, #note-form select'),
+            clearBtn: document.getElementById('clear-btn'),
+            generateBtn: document.getElementById('generate-btn'),
+            profilesModal: document.getElementById('profiles-modal'),
+            profileList: document.getElementById('profile-list'),
+            newProfileNameInput: document.getElementById('new-profile-name'),
+            addProfileBtn: document.getElementById('add-profile-btn'),
+            closeProfilesModalBtn: document.getElementById('close-profiles-modal-btn'),
+            snippetModal: document.getElementById('snippet-modal'),
+            snippetModalTitle: document.getElementById('snippet-modal-title'),
+            snippetList: document.getElementById('snippet-list'),
+            newSnippetNameInput: document.getElementById('new-snippet-name'),
+            saveSnippetBtn: document.getElementById('save-snippet-btn'),
+            closeSnippetModalBtn: document.getElementById('close-snippet-modal-btn'),
         };
-        const allFormInputs = document.querySelectorAll('#note-form input, #note-form textarea, #note-form select');
-        const clearBtn = document.getElementById('clear-btn');
-        const generateBtn = document.getElementById('generate-btn');
-        const profilesModal = document.getElementById('profiles-modal');
-        const profileList = document.getElementById('profile-list');
-        const newProfileNameInput = document.getElementById('new-profile-name');
-        const addProfileBtn = document.getElementById('add-profile-btn');
-        const closeProfilesModalBtn = document.getElementById('close-profiles-modal-btn');
-        const snippetModal = document.getElementById('snippet-modal');
-        const snippetModalTitle = document.getElementById('snippet-modal-title');
-        const snippetList = document.getElementById('snippet-list');
-        const newSnippetNameInput = document.getElementById('new-snippet-name');
-        const saveSnippetBtn = document.getElementById('save-snippet-btn');
-        const closeSnippetModalBtn = document.getElementById('close-snippet-modal-btn');
         let currentSnippetTargetId = null;
+        let appData = {};
 
         // --- SECCIÓN 2: GESTIÓN DE DATOS ---
-        let appData = {};
-        function loadData() {
-            try {
-                const data = localStorage.getItem('axiomNoteProfiles_v2');
-                if (data) appData = JSON.parse(data); else throw new Error("No data");
-            } catch (e) {
-                appData = { profiles: [{ id: 'default', name: 'General' }], activeProfileId: 'default', snippets: { 'default': {} } };
-                saveData();
-            }
-        }
-        function saveData() { localStorage.setItem('axiomNoteProfiles_v2', JSON.stringify(appData)); }
-
-        // --- SECCIÓN 3: LÓGICA DE PERFILES ---
-        function populateProfileSelector() {
-            profileSelect.innerHTML = '';
-            appData.profiles.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.id;
-                option.textContent = p.name;
-                profileSelect.appendChild(option);
-            });
-            profileSelect.value = appData.activeProfileId;
-        }
-        function renderProfileList() {
-            profileList.innerHTML = '';
-            appData.profiles.forEach(p => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${p.name}</span>`;
-                if (p.id !== 'default') {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-btn';
-                    deleteBtn.textContent = 'X';
-                    deleteBtn.onclick = () => deleteProfile(p.id);
-                    li.appendChild(deleteBtn);
+        const DataManager = {
+            load() {
+                try {
+                    const data = localStorage.getItem('axiomNoteProfiles_v2');
+                    appData = data ? JSON.parse(data) : this.getDefaults();
+                } catch (e) {
+                    appData = this.getDefaults();
                 }
-                profileList.appendChild(li);
-            });
-        }
-        function addProfile() {
-            const name = newProfileNameInput.value.trim();
-            if (name && !appData.profiles.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-                const newId = `profile_${Date.now()}`;
-                appData.profiles.push({ id: newId, name: name });
-                appData.snippets[newId] = {};
-                newProfileNameInput.value = '';
-                saveData();
-                populateProfileSelector();
-                renderProfileList();
-            }
-        }
-        function deleteProfile(profileId) {
-            if (confirm('¿Borrar este perfil y todas sus plantillas?')) {
-                appData.profiles = appData.profiles.filter(p => p.id !== profileId);
-                delete appData.snippets[profileId];
-                if (appData.activeProfileId === profileId) appData.activeProfileId = 'default';
-                saveData();
-                populateProfileSelector();
-                renderProfileList();
-            }
-        }
+            },
+            save() {
+                localStorage.setItem('axiomNoteProfiles_v2', JSON.stringify(appData));
+            },
+            getDefaults: () => ({
+                profiles: [{ id: 'default', name: 'General' }],
+                activeProfileId: 'default',
+                snippets: { 'default': {} }
+            })
+        };
 
-        // --- SECCIÓN 4: LÓGICA DE PLANTILLAS (SNIPPETS) ---
-        function getSnippets(targetId) {
-            const activeProfileId = appData.activeProfileId;
-            const profileSnippets = appData.snippets[activeProfileId] || {};
-            return profileSnippets[targetId] || [];
-        }
-        function saveCurrentSnippets(targetId, snippets) {
-            const activeProfileId = appData.activeProfileId;
-            if (!appData.snippets[activeProfileId]) appData.snippets[activeProfileId] = {};
-            appData.snippets[activeProfileId][targetId] = snippets;
-            saveData();
-            renderSnippets(targetId);
-        }
-        function renderSnippets(targetId) {
-            snippetList.innerHTML = '';
-            const snippets = getSnippets(targetId);
-            if (snippets.length === 0) { snippetList.innerHTML = '<li>No hay plantillas guardadas.</li>'; return; }
-            snippets.forEach((snippet, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${snippet.name}</span> <button class="delete-btn" data-index="${index}">X</button>`;
-                li.querySelector('span').onclick = () => {
-                    document.getElementById(targetId).value = snippet.content;
-                    document.getElementById(targetId).dispatchEvent(new Event('input'));
-                    closeSnippetModal();
-                };
-                li.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); snippets.splice(index, 1); saveCurrentSnippets(targetId, snippets); };
-                snippetList.appendChild(li);
-            });
-        }
-        function openSnippetModal(targetId) {
-            currentSnippetTargetId = targetId;
-            snippetModalTitle.textContent = `Plantillas para "${document.querySelector(`label[for='${targetId}']`).textContent}"`;
-            newSnippetNameInput.value = '';
-            renderSnippets(targetId);
-            snippetModal.classList.remove('hidden');
-        }
-        function closeSnippetModal() { snippetModal.classList.add('hidden'); }
-
-        // --- SECCIÓN 5: LÓGICA DEL FORMULARIO PRINCIPAL ---
-        function saveFormState() {
-            const contexto = contextoSelector.value;
-            const data = {};
-            formSections[contexto].querySelectorAll('input, textarea, select').forEach(el => { data[el.id] = el.value; });
-            localStorage.setItem(`axiomNoteData_${contexto}`, JSON.stringify(data));
-        }
-        function loadFormState(contexto) {
-            const savedData = localStorage.getItem(`axiomNoteData_${contexto}`);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                for (const id in data) {
-                    const element = document.getElementById(id);
-                    if (element) element.value = data[id];
+        // --- SECCIÓN 3: MÓDULOS DE FUNCIONALIDAD ---
+        const ProfileManager = {
+            init() {
+                DOMElements.manageProfilesBtn.addEventListener('click', this.openModal);
+                DOMElements.addProfileBtn.addEventListener('click', this.add);
+                DOMElements.closeProfilesModalBtn.addEventListener('click', this.closeModal);
+                DOMElements.profilesModal.addEventListener('click', (e) => { if(e.target === DOMElements.profilesModal) this.closeModal(); });
+                DOMElements.profileSelect.addEventListener('change', this.setActive);
+                this.populateSelector();
+            },
+            populateSelector() {
+                DOMElements.profileSelect.innerHTML = '';
+                appData.profiles.forEach(p => {
+                    const option = new Option(p.name, p.id);
+                    DOMElements.profileSelect.add(option);
+                });
+                DOMElements.profileSelect.value = appData.activeProfileId;
+            },
+            renderList() {
+                DOMElements.profileList.innerHTML = '';
+                appData.profiles.forEach(p => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${p.name}</span>`;
+                    if (p.id !== 'default') {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.textContent = 'X';
+                        deleteBtn.onclick = () => this.delete(p.id);
+                        li.appendChild(deleteBtn);
+                    }
+                    DOMElements.profileList.appendChild(li);
+                });
+            },
+            add() {
+                const name = DOMElements.newProfileNameInput.value.trim();
+                if (name && !appData.profiles.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+                    const newId = `profile_${Date.now()}`;
+                    appData.profiles.push({ id: newId, name: name });
+                    appData.snippets[newId] = {};
+                    DOMElements.newProfileNameInput.value = '';
+                    DataManager.save();
+                    this.populateSelector();
+                    this.renderList();
                 }
+            },
+            delete(profileId) {
+                if (confirm('¿Borrar este perfil y todas sus plantillas?')) {
+                    appData.profiles = appData.profiles.filter(p => p.id !== profileId);
+                    delete appData.snippets[profileId];
+                    if (appData.activeProfileId === profileId) appData.activeProfileId = 'default';
+                    DataManager.save();
+                    this.populateSelector();
+                    this.renderList();
+                }
+            },
+            setActive() {
+                appData.activeProfileId = DOMElements.profileSelect.value;
+                DataManager.save();
+            },
+            openModal() {
+                ProfileManager.renderList();
+                DOMElements.profilesModal.classList.remove('hidden');
+            },
+            closeModal() {
+                DOMElements.profilesModal.classList.add('hidden');
             }
-        }
-        function toggleFields() {
-            const contexto = contextoSelector.value;
-            Object.values(formSections).forEach(section => section.classList.add('hidden'));
-            if (formSections[contexto]) {
-                formSections[contexto].classList.remove('hidden');
-                loadFormState(contexto);
+        };
+
+        const SnippetManager = {
+            init() {
+                 document.querySelectorAll('.snippet-btn').forEach(btn => btn.addEventListener('click', () => this.openModal(btn.dataset.target)));
+                 DOMElements.saveSnippetBtn.addEventListener('click', this.save);
+                 DOMElements.closeSnippetModalBtn.addEventListener('click', this.closeModal);
+                 DOMElements.snippetModal.addEventListener('click', (e) => { if(e.target === DOMElements.snippetModal) this.closeModal(); });
+            },
+            get(targetId) {
+                const profileSnippets = appData.snippets[appData.activeProfileId] || {};
+                return profileSnippets[targetId] || [];
+            },
+            saveCurrent(targetId, snippets) {
+                const activeId = appData.activeProfileId;
+                if (!appData.snippets[activeId]) appData.snippets[activeId] = {};
+                appData.snippets[activeId][targetId] = snippets;
+                DataManager.save();
+                this.render(targetId);
+            },
+            render(targetId) {
+                DOMElements.snippetList.innerHTML = '';
+                const snippets = this.get(targetId);
+                if (snippets.length === 0) { DOMElements.snippetList.innerHTML = '<li>No hay plantillas guardadas.</li>'; return; }
+                snippets.forEach((snippet, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${snippet.name}</span> <button class="delete-btn">X</button>`;
+                    li.querySelector('span').onclick = () => {
+                        document.getElementById(targetId).value = snippet.content;
+                        document.getElementById(targetId).dispatchEvent(new Event('input'));
+                        this.closeModal();
+                    };
+                    li.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); snippets.splice(index, 1); this.saveCurrent(targetId, snippets); };
+                    DOMElements.snippetList.appendChild(li);
+                });
+            },
+            save() {
+                const name = DOMElements.newSnippetNameInput.value.trim();
+                const content = document.getElementById(currentSnippetTargetId).value;
+                if(name && content) {
+                    const snippets = SnippetManager.get(currentSnippetTargetId);
+                    snippets.push({name, content});
+                    SnippetManager.saveCurrent(currentSnippetTargetId, snippets);
+                    DOMElements.newSnippetNameInput.value = '';
+                } else {
+                    alert('Se necesita un nombre y contenido.');
+                }
+            },
+            openModal(targetId) {
+                currentSnippetTargetId = targetId;
+                DOMElements.snippetModalTitle.textContent = `Plantillas para "${document.querySelector(`label[for='${targetId}']`).textContent}"`;
+                DOMElements.newSnippetNameInput.value = '';
+                this.render(targetId);
+                DOMElements.snippetModal.classList.remove('hidden');
+            },
+            closeModal() { DOMElements.snippetModal.classList.add('hidden'); }
+        };
+
+        const FormManager = {
+            init() {
+                DOMElements.contextoSelector.addEventListener('change', this.toggleFields);
+                DOMElements.allFormInputs.forEach(input => input.addEventListener('input', this.saveState));
+                DOMElements.clearBtn.addEventListener('click', this.clear);
+                this.toggleFields();
+            },
+            saveState() {
+                const contexto = DOMElements.contextoSelector.value;
+                const data = {};
+                DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(el => { data[el.id] = el.value; });
+                localStorage.setItem(`axiomNoteData_${contexto}`, JSON.stringify(data));
+            },
+            loadState(contexto) {
+                const savedData = localStorage.getItem(`axiomNoteData_${contexto}`);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    for (const id in data) {
+                        const element = document.getElementById(id);
+                        if (element) element.value = data[id];
+                    }
+                }
+            },
+            toggleFields() {
+                const contexto = DOMElements.contextoSelector.value;
+                Object.values(DOMElements.formSections).forEach(section => section.classList.add('hidden'));
+                const activeSection = DOMElements.formSections[contexto];
+                if (activeSection) {
+                    activeSection.classList.remove('hidden');
+                    FormManager.loadState(contexto);
+                }
+            },
+            clear() {
+                const contexto = DOMElements.contextoSelector.value;
+                DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
+                    if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = '';
+                });
+                localStorage.removeItem(`axiomNoteData_${contexto}`);
             }
-            // validarFormularioParaIA(); // Reactivar si se implementa
-        }
-        function clearForm() {
-            const contexto = contextoSelector.value;
-            formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
-                if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = '';
-            });
-            localStorage.removeItem(`axiomNoteData_${contexto}`);
-            // validarFormularioParaIA(); // Reactivar si se implementa
-        }
+        };
 
-        // --- SECCIÓN 6: LÓGICA DE TEMA ---
-        function applyTheme(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
-
-        // --- SECCIÓN 7: INICIALIZACIÓN Y EVENT LISTENERS ---
-        loadData();
+        const ThemeManager = {
+            init() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                this.apply(savedTheme);
+                DOMElements.themeSelect.value = savedTheme;
+                DOMElements.themeSelect.addEventListener('change', () => {
+                    const newTheme = DOMElements.themeSelect.value;
+                    localStorage.setItem('theme', newTheme);
+                    this.apply(newTheme);
+                });
+            },
+            apply(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
+        };
         
-        // Perfiles
-        populateProfileSelector();
-        manageProfilesBtn.addEventListener('click', () => { renderProfileList(); profilesModal.classList.remove('hidden'); });
-        addProfileBtn.addEventListener('click', addProfile);
-        closeProfilesModalBtn.addEventListener('click', () => profilesModal.classList.add('hidden'));
-        profilesModal.addEventListener('click', (e) => { if(e.target === profilesModal) profilesModal.classList.add('hidden'); });
-        profileSelect.addEventListener('change', () => { appData.activeProfileId = profileSelect.value; saveData(); });
-        
-        // Snippets
-        document.querySelectorAll('.snippet-btn').forEach(btn => btn.addEventListener('click', () => openSnippetModal(btn.dataset.target)));
-        saveSnippetBtn.addEventListener('click', () => {
-             const name = newSnippetNameInput.value.trim();
-             const content = document.getElementById(currentSnippetTargetId).value;
-             if(name && content) {
-                 const snippets = getSnippets(currentSnippetTargetId);
-                 snippets.push({name, content});
-                 saveCurrentSnippets(currentSnippetTargetId, snippets);
-                 newSnippetNameInput.value = '';
-             } else {
-                 alert('Se necesita un nombre y contenido.');
-             }
-        });
-        closeSnippetModalBtn.addEventListener('click', closeSnippetModal);
-        snippetModal.addEventListener('click', (e) => { if(e.target === snippetModal) closeSnippetModal(); });
+        const App = {
+            init() {
+                DataManager.load();
+                ProfileManager.init();
+                SnippetManager.init();
+                FormManager.init();
+                ThemeManager.init();
+            }
+        };
 
-        // Tema
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        themeSelect.value = savedTheme;
-        themeSelect.addEventListener('change', () => { const newTheme = themeSelect.value; localStorage.setItem('theme', newTheme); applyTheme(newTheme); });
-
-        // Formulario
-        contextoSelector.addEventListener('change', toggleFields);
-        allFormInputs.forEach(input => input.addEventListener('input', saveFormState));
-        clearBtn.addEventListener('click', clearForm);
-
-        // Estado inicial
-        toggleFields();
+        // --- INICIAR LA APLICACIÓN ---
+        App.init();
     });
     </script>
 </body>
