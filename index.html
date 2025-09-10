@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v3.9</title>
+    <title>Axiom Note - v4.0</title>
     <style>
         :root {
             --bg-color: #f4f7f9; --container-bg-color: #ffffff; --text-color: #333;
@@ -39,7 +39,7 @@
         textarea { min-height: 80px; resize: vertical; }
         #generate-btn { width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold; background: linear-gradient(45deg, #3498db, #2980b9); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; }
         #generate-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .result-container, .result-header { margin-top: 40px; }
+        .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 20px; }
         h2 { color: var(--header-color); margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: var(--utility-btn-bg); color: var(--utility-btn-text); border: 1px solid var(--utility-btn-border); border-radius: 6px; cursor: pointer; }
@@ -80,7 +80,7 @@
 
         <h1>Axiom Note</h1>
         <form id="note-form">
-             <div class="form-section">
+            <div class="form-section">
                 <label for="contexto-informe">Contexto del Informe</label>
                 <select id="contexto-informe">
                     <option value="urgencias">Urgencias</option>
@@ -89,7 +89,6 @@
                 </select>
             </div>
             
-            <!-- FORMULARIOS COMPLETOS RESTAURADOS -->
             <div id="urgencias-fields" class="hidden">
                 <div class="form-section datos-grid">
                     <div><label for="urg-fecha-hora">Fecha y Hora</label><input type="text" id="urg-fecha-hora"></div>
@@ -134,8 +133,17 @@
             </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
+
             <div class="result-container">
-                 <!-- Contenedores de resultado y botón de limpiar -->
+                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar</button></div>
+                <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
+                <div class="result-header"><h2>Recomendaciones</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar</button></div>
+                <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
+                <div class="result-header"><h3>Palabras Clave</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave..."></textarea>
+            </div>
+             <div style="margin-top: 20px; text-align: right;">
+                 <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
             </div>
         </form>
     </div>
@@ -183,6 +191,8 @@
             evolutivo: document.getElementById('evolutivo-fields')
         };
         const allFormInputs = document.querySelectorAll('#note-form input, #note-form textarea, #note-form select');
+        const clearBtn = document.getElementById('clear-btn');
+        const generateBtn = document.getElementById('generate-btn');
         
         // Modales de Perfiles
         const profilesModal = document.getElementById('profiles-modal');
@@ -205,7 +215,7 @@
 
         function loadData() {
             try {
-                const data = localStorage.getItem('axiomNoteProfiles_v2'); // Nueva key para evitar conflictos
+                const data = localStorage.getItem('axiomNoteProfiles_v2');
                 if (data) appData = JSON.parse(data);
                 else throw new Error("No data");
             } catch (e) {
@@ -214,6 +224,7 @@
                     activeProfileId: 'default',
                     snippets: { 'default': {} }
                 };
+                saveData();
             }
         }
 
@@ -251,7 +262,7 @@
 
         function addProfile() {
             const name = newProfileNameInput.value.trim();
-            if (name && !appData.profiles.find(p => p.name === name)) {
+            if (name && !appData.profiles.find(p => p.name.toLowerCase() === name.toLowerCase())) {
                 const newId = `profile_${Date.now()}`;
                 appData.profiles.push({ id: newId, name: name });
                 appData.snippets[newId] = {};
@@ -324,33 +335,59 @@
         
         function closeSnippetModal() { snippetModal.classList.add('hidden'); }
 
-        saveSnippetBtn.addEventListener('click', () => {
-            const name = newSnippetNameInput.value.trim();
-            const content = document.getElementById(currentSnippetTargetId).value;
-            if (name && content) {
-                const snippets = getSnippets(currentSnippetTargetId);
-                snippets.push({ name, content });
-                saveCurrentSnippets(currentSnippetTargetId, snippets);
-                newSnippetNameInput.value = '';
-            } else {
-                alert('Se necesita un nombre y contenido.');
-            }
-        });
-        
         // --- 5. LÓGICA DEL FORMULARIO ---
-        // (Autosave, toggleFields, clearForm, etc. aquí)
-        // ...
+        function saveFormState() {
+            const contexto = contextoSelector.value;
+            const data = {};
+            const activeForm = formSections[contexto];
+            if (!activeForm) return;
+            activeForm.querySelectorAll('input, textarea, select').forEach(el => {
+                data[el.id] = el.value;
+            });
+            localStorage.setItem(`axiomNoteData_${contexto}`, JSON.stringify(data));
+        }
 
-        // --- 6. FUNCIONES DE LA APP ---
-        // (generateNote, copyToClipboard, etc. aquí)
-        // ...
+        function loadFormState(contexto) {
+            const savedData = localStorage.getItem(`axiomNoteData_${contexto}`);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                for (const id in data) {
+                    const element = document.getElementById(id);
+                    if (element) element.value = data[id];
+                }
+            }
+        }
 
-        // --- 7. LÓGICA DEL TEMA ---
+        function toggleFields() {
+            const contexto = contextoSelector.value;
+            Object.values(formSections).forEach(section => section.classList.add('hidden'));
+            if (formSections[contexto]) {
+                formSections[contexto].classList.remove('hidden');
+                loadFormState(contexto);
+            }
+            //validarFormularioParaIA();
+        }
+
+        function clearForm() {
+            const contexto = contextoSelector.value;
+            const activeForm = formSections[contexto];
+            if (activeForm) {
+                activeForm.querySelectorAll('input, textarea, select').forEach(field => {
+                    if (field.tagName === 'SELECT') field.selectedIndex = 0;
+                    else field.value = '';
+                });
+            }
+            // Limpiar resultados
+            localStorage.removeItem(`axiomNoteData_${contexto}`);
+            //validarFormularioParaIA();
+        }
+
+        // --- 6. LÓGICA DEL TEMA ---
         function applyTheme(theme) {
             document.body.classList.toggle('dark-mode', theme === 'dark');
         }
 
-        // --- 8. INICIALIZACIÓN ---
+        // --- 7. INICIALIZACIÓN ---
         loadData();
         
         // Perfiles
@@ -383,14 +420,12 @@
         });
 
         // Formulario
-        // ... (toggleFields, event listeners de autosave, etc.)
-        const contexto = contextoSelector.value;
-        Object.values(formSections).forEach(section => section.classList.add('hidden'));
-        if (formSections[contexto]) {
-            formSections[contexto].classList.remove('hidden');
-            //loadFormState(contexto);
-        }
-        //validarFormularioParaIA();
+        contextoSelector.addEventListener('change', toggleFields);
+        allFormInputs.forEach(input => input.addEventListener('input', saveFormState));
+        clearBtn.addEventListener('click', clearForm);
+
+        // Estado inicial del formulario
+        toggleFields();
     });
     </script>
 </body>
