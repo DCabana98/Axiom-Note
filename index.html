@@ -63,34 +63,34 @@
 
             <!-- FORMULARIO DE INGRESO EN PLANTA (NUEVA ESTRUCTURA SIMPLIFICADA) -->
             <div id="planta-fields" class="hidden">
-                 <h3>Información Inicial</h3>
-                 <div class="form-section datos-grid">
+                <h3>Información Inicial</h3>
+                <div class="form-section datos-grid">
                     <div><label for="planta-nombre">Nombre del Paciente</label><input type="text" id="planta-nombre"></div>
                     <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
                     <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
-                 </div>
+                </div>
 
-                 <h3>Bloque 1: Contexto del Paciente</h3>
-                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
-                 <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
-                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales (Comorbilidades, Quirúrgicos, Psiquiátricos)</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
+                <h3>Bloque 1: Contexto del Paciente</h3>
+                <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
+                <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
+                <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales (Comorbilidades, Quirúrgicos, Psiquiátricos)</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
 
-                 <h3>Bloque 2: Evaluación Clínica</h3>
-                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
-                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
+                <h3>Bloque 2: Evaluación Clínica</h3>
+                <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
+                <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
 
-                 <h3>Bloque 3: Plan de Actuación</h3>
-                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
-                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
-                 <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones/Dispositivos</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
+                <h3>Bloque 3: Plan de Actuación</h3>
+                <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
+                <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
+                <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones/Dispositivos</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
             </div>
 
             <!-- FORMULARIO DE EVOLUTIVO EN PLANTA -->
             <div id="evolutivo-fields" class="hidden">
-                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
-                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
-                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
-                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
+                <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
             </div>
 
             <button type="button" id="generate-btn">Generar Texto</button>
