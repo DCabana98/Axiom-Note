@@ -18,24 +18,27 @@ export default async (req, res) => {
 
     const reglaDeEstilo = `
 **REGLAS DE ESTILO Y TONO:**
-1.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
-2.  **CLARIDAD Y FLUIDEZ:** Redacta en párrafos coherentes y profesionales. Evita el estilo telegráfico.
+1.  **LENGUAJE PROFESIONAL:** Redacta el informe en un estilo narrativo y fluido, como lo haría un médico experimentado para una historia clínica oficial. Evita el estilo telegráfico o de lista.
+2.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
 3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
 `;
 
     const reglaDeFormato = `
 **INSTRUCCIÓN FINAL MUY IMPORTANTE:**
-Debes generar 3 bloques de texto separados. Primero el informe, luego las recomendaciones y finalmente las palabras clave.
-1.  Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
-2.  Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
-3.  Después de ---KEYWORDS---, escribe una lista de 5 a 7 palabras clave separadas por comas.
+Debes generar 3 bloques de texto separados.
+1.  El informe principal.
+2.  Las recomendaciones y el plan a seguir.
+3.  Una lista de 5 a 7 palabras clave.
+
+Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
+Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
 `;
 
 
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es redactar una nota de ingreso desde urgencias.
+Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es transformar las siguientes notas esquemáticas en un párrafo de ingreso narrativo, profesional y bien redactado para la historia clínica.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
@@ -48,16 +51,16 @@ ${JSON.stringify(incomingData, null, 2)}
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria.
+Actúa como un médico internista experimentado redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria, agrupando la información en párrafos lógicos.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
 **ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
-1.  **Información Inicial:** Empieza presentando al paciente con los datos básicos ('nombre', 'edad', 'sexo').
-2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente la información de los campos 'motivo_ingreso', 'alergias' y 'antecedentes'.
-3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas.
-4.  **Plan de Actuación:** Detalla el 'tratamiento' inicial, el plan de 'cuidados' de enfermería y la 'justificacion' de intervenciones o dispositivos.
+1.  **Información Inicial y Motivo:** Empieza presentando al paciente y el motivo de ingreso.
+2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente las alergias y los antecedentes.
+3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la exploración y los resultados de las pruebas.
+4.  **Plan de Actuación:** Detalla el tratamiento, los cuidados de enfermería y la justificación de intervenciones.
 
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---
@@ -68,11 +71,11 @@ ${JSON.stringify(incomingData, null, 2)}
 
       case 'evolutivo':
         masterPrompt = `
-Actúa como un médico de planta redactando una nota de evolución concisa.
+Actúa como un médico de planta redactando una nota de evolución concisa y profesional. Transforma los siguientes puntos en un párrafo narrativo.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-A continuación se presentan los datos para generar el EVOLUTIVO EN PLANTA en español:
+A continuación se presentan los datos para generar el EVOLUTIVO DE PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---
@@ -111,7 +114,7 @@ ${JSON.stringify(incomingData, null, 2)}
     });
 
   } catch (error) {
-    console.error("Error en la función:", error);
+    console.error("Error en la función del servidor:", error);
     res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
   }
 };
