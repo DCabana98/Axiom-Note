@@ -1,40 +1,40 @@
 import fetch from 'node-fetch';
 
 export default async (req, res) => {
-  try {
-    const { incomingData } = req.body;
-    const apiKey = process.env.GOOGLE_API_KEY;
+  try {
+    const { incomingData } = req.body;
+    const apiKey = process.env.GOOGLE_API_KEY;
 
-    if (!apiKey) {
-      throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada en Vercel.");
-    }
+    if (!apiKey) {
+      throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
+    }
 
-    let masterPrompt;
-    const contexto = incomingData.contexto;
+    let masterPrompt;
+    const contexto = incomingData.contexto;
 
-    const reglaDeOro = `
+    const reglaDeOro = `
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
 
-    const reglaDeEstilo = `
+    const reglaDeEstilo = `
 **REGLAS DE ESTILO Y TONO:**
-1.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
-2.  **CLARIDAD Y FLUIDEZ:** Redacta en párrafos coherentes y profesionales. Evita el estilo telegráfico.
-3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
+1.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
+2.  **CLARIDAD Y FLUIDEZ:** Redacta en párrafos coherentes y profesionales. Evita el estilo telegráfico.
+3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
 `;
 
-    const reglaDeFormato = `
+    const reglaDeFormato = `
 **INSTRUCCIÓN FINAL MUY IMPORTANTE:**
 Debes generar 3 bloques de texto separados. Primero el informe, luego las recomendaciones y finalmente las palabras clave.
-1.  Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
-2.  Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
-3.  Después de ---KEYWORDS---, escribe una lista de 5 a 7 palabras clave separadas por comas.
+1.  Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
+2.  Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
+3.  Después de ---KEYWORDS---, escribe una lista de 5 a 7 palabras clave separadas por comas.
 `;
 
 
-    switch (contexto) {
-      case 'urgencias':
-        masterPrompt = `
+    switch (contexto) {
+      case 'urgencias':
+        masterPrompt = `
 Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es redactar una nota de ingreso desde urgencias.
 ${reglaDeOro}
 ${reglaDeEstilo}
@@ -44,30 +44,30 @@ A continuación se presentan los datos para generar el informe de URGENCIAS en e
 ${JSON.stringify(incomingData, null, 2)}
 ---
 `;
-        break;
+        break;
 
-      case 'planta':
-        masterPrompt = `
+      case 'planta':
+        masterPrompt = `
 Actúa como un médico internista experimentado que está redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
 **ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
-1.  **Información Inicial:** Empieza presentando al paciente con los datos básicos ('nombre', 'edad', 'sexo').
-2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente la información de los campos 'motivo_ingreso', 'alergias' y 'antecedentes'.
-3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas.
-4.  **Plan de Actuación:** Detalla el 'tratamiento' inicial, el plan de 'cuidados' de enfermería y la 'justificacion' de intervenciones o dispositivos.
+1.  **Información Inicial:** Empieza presentando al paciente con los datos básicos ('nombre', 'edad', 'sexo').
+2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente la información de los campos 'motivo_ingreso', 'alergias' y 'antecedentes'.
+3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la 'exploracion' y los 'resultados' de las pruebas.
+4.  **Plan de Actuación:** Detalla el 'tratamiento' inicial, el plan de 'cuidados' de enfermería y la 'justificacion' de intervenciones o dispositivos.
 
 A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---
 `;
-        break;
+        break;
 
-      case 'evolutivo':
-        masterPrompt = `
+      case 'evolutivo':
+        masterPrompt = `
 Actúa como un médico de planta redactando una nota de evolución concisa.
 ${reglaDeOro}
 ${reglaDeEstilo}
@@ -77,41 +77,42 @@ A continuación se presentan los datos para generar el EVOLUTIVO EN PLANTA en es
 ${JSON.stringify(incomingData, null, 2)}
 ---
 `;
-        break;
+        break;
 
-      default:
-        masterPrompt = "Contexto no reconocido.";
-    }
-    
-    const modelName = "gemini-1.5-pro-latest";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-    const requestBody = { contents: [{ parts: [{ text: masterPrompt }] }] };
-    const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+      default:
+        masterPrompt = "Contexto no reconocido.";
+    }
+    
+    const modelName = "gemini-1.5-pro-latest";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const requestBody = { contents: [{ parts: [{ text: masterPrompt }] }] };
+    const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
-    if (!googleResponse.ok) {
-      const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
-      return;
-    }
+    if (!googleResponse.ok) {
+      const errorData = await googleResponse.json();
+      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
+      return;
+    }
 
-    const data = await googleResponse.json();
-    const fullText = data.candidates[0].content.parts[0].text;
+    const data = await googleResponse.json();
+    const fullText = data.candidates[0].content.parts[0].text;
 
-    const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
-    
-    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
-    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
+    const parts = fullText.split('---SEPARADOR---');
+    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
+    
+    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
+    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
+    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
 
-    res.status(200).json({ 
-        report: reportPart,
-        recommendations: recommendationsPart,
-        keywords: keywordsPart
-    });
+    res.status(200).json({ 
+        report: reportPart,
+        recommendations: recommendationsPart,
+        keywords: keywordsPart
+    });
 
-  } catch (error) {
-    console.error("Error en la función de Vercel:", error);
-    res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
-  }
+  } catch (error) {
+    console.error("Error en la función:", error);
+    res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
+  }
 };
+
