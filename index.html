@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v4.6</title>
+    <title>Axiom Note - v4.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -194,12 +194,11 @@
 
         const FormManager = {
             init() {
-                DOMElements.contextoSelector.addEventListener('change', this.toggleFields);
-                DOMElements.allFormInputs.forEach(input => input.addEventListener('input', this.saveState));
-                DOMElements.clearBtn.addEventListener('click', this.clear);
-                DOMElements.sexoSelector.addEventListener('change', this.toggleEmbarazoField);
+                DOMElements.contextoSelector.addEventListener('change', () => this.toggleFields());
+                DOMElements.allFormInputs.forEach(input => input.addEventListener('input', () => this.saveState()));
+                DOMElements.clearBtn.addEventListener('click', () => this.clear());
+                DOMElements.sexoSelector.addEventListener('change', () => this.toggleEmbarazoField());
                 this.toggleFields();
-                this.setInitialDateTime();
             },
             saveState() {
                 const contexto = DOMElements.contextoSelector.value;
@@ -226,9 +225,10 @@
                 const activeSection = DOMElements.formSections[contexto];
                 if (activeSection) {
                     activeSection.classList.remove('hidden');
-                    FormManager.loadState(contexto);
+                    this.loadState(contexto);
                 }
-                FormManager.toggleEmbarazoField();
+                this.setInitialDateTime();
+                this.toggleEmbarazoField();
                 WordCounterManager.updateAllVisible();
             },
             clear() {
@@ -253,6 +253,7 @@
                     const now = new Date();
                     const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                     field.value = formattedDateTime;
+                    field.dispatchEvent(new Event('input')); // Para que se guarde automáticamente
                 }
             },
             setInitialDateTime() {
@@ -275,111 +276,113 @@
             apply(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
         };
         
-        async function generateNote() {
-            DOMElements.generateBtn.disabled = true;
-            DOMElements.generateBtn.textContent = "Generando...";
-            const contexto = DOMElements.contextoSelector.value;
-            let incomingData = { contexto };
-            DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
-                if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
-                    const key = field.id.replace(`${contexto}-`, '');
-                    incomingData[key] = field.value;
-                }
-            });
-            try {
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ incomingData }),
+        const ActionManager = {
+            init() {
+                DOMElements.generateBtn.addEventListener('click', this.generateNote);
+                DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF);
+                DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText, DOMElements.copyReportBtn));
+                DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText, DOMElements.copyRecsBtn));
+                DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText, DOMElements.copyKeywordsBtn));
+            },
+            async generateNote() {
+                DOMElements.generateBtn.disabled = true;
+                DOMElements.generateBtn.textContent = "Generando...";
+                const contexto = DOMElements.contextoSelector.value;
+                let incomingData = { contexto };
+                DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
+                    if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
+                        const key = field.id.replace(`${contexto}-`, '');
+                        incomingData[key] = field.value;
+                    }
                 });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                try {
+                    const response = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ incomingData }),
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    DOMElements.resultText.value = data.report || "";
+                    DOMElements.recommendationsText.value = data.recommendations || "";
+                    DOMElements.keywordsText.value = data.keywords || "";
+                } catch (error) {
+                    DOMElements.resultText.value = `Error: ${error.message}`;
+                } finally {
+                    DOMElements.generateBtn.disabled = false;
+                    DOMElements.generateBtn.textContent = "Generar Texto";
                 }
-                const data = await response.json();
-                DOMElements.resultText.value = data.report || "";
-                DOMElements.recommendationsText.value = data.recommendations || "";
-                DOMElements.keywordsText.value = data.keywords || "";
-            } catch (error) {
-                DOMElements.resultText.value = `Error: ${error.message}`;
-            } finally {
-                DOMElements.generateBtn.disabled = false;
-                DOMElements.generateBtn.textContent = "Generar Texto";
-            }
-        }
-        
-        function exportToPDF() {
-            const reportText = DOMElements.resultText.value;
-            if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
-            const contexto = DOMElements.contextoSelector.value;
-            let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
-            const activeForm = DOMElements.formSections[contexto];
-            if(activeForm) {
-                const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
-                const edadEl = activeForm.querySelector('input[id*="-edad"]');
-                const fechaEl = activeForm.querySelector('input[id*="-fecha-hora"]');
-                if(nombreEl) nombre = nombreEl.value || 'N/A';
-                if(edadEl) edad = edadEl.value || 'N/A';
-                if(fechaEl) fecha = fechaEl.value || new Date().toLocaleString('es-ES');
-            }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("Times-Roman");
-            let y = 20;
-            doc.setFontSize(18);
-            doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
-            y += 15;
-            doc.setFontSize(12);
-            doc.text(`Paciente: ${nombre}`, 15, y);
-            doc.text(`Edad: ${edad}`, 15, y + 7);
-            doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
-            y += 28;
-            doc.setLineWidth(0.5);
-            doc.line(15, y, 195, y);
-            y += 10;
-            const addSection = (title, textContent) => {
-                if (!textContent || !textContent.trim()) return;
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text(title, 15, y);
-                y += 8;
+            },
+            exportToPDF() {
+                const reportText = DOMElements.resultText.value;
+                if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
+                const contexto = DOMElements.contextoSelector.value;
+                let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
+                const activeForm = DOMElements.formSections[contexto];
+                if(activeForm) {
+                    const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
+                    const edadEl = activeForm.querySelector('input[id*="-edad"]');
+                    const fechaEl = activeForm.querySelector('input[id*="-fecha-hora"]');
+                    if(nombreEl) nombre = nombreEl.value || 'N/A';
+                    if(edadEl) edad = edadEl.value || 'N/A';
+                    if(fechaEl) fecha = fechaEl.value || new Date().toLocaleString('es-ES');
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFont("Times-Roman");
+                let y = 20;
+                doc.setFontSize(18);
+                doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
+                y += 15;
                 doc.setFontSize(12);
-                doc.setFont(undefined, 'normal');
-                const splitText = doc.splitTextToSize(textContent, 180);
-                splitText.forEach(line => {
-                    if (y > 280) { doc.addPage(); y = 20; }
-                    doc.text(line, 15, y);
-                    y += 7;
-                });
+                doc.text(`Paciente: ${nombre}`, 15, y);
+                doc.text(`Edad: ${edad}`, 15, y + 7);
+                doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
+                y += 28;
+                doc.setLineWidth(0.5);
+                doc.line(15, y, 195, y);
                 y += 10;
-            };
-            addSection("Nota de Evolución", DOMElements.resultText.value);
-            addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
-            addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
-            const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
-            doc.save(fileName);
-        }
-
-        function copyToClipboard(element, button) {
-            if (!element.value) return;
-            navigator.clipboard.writeText(element.value).then(() => {
-                const originalText = button.textContent;
-                button.textContent = "¡Copiado!";
-                setTimeout(() => { button.textContent = originalText; }, 2000);
-            });
-        }
-        
-        DOMElements.generateBtn.addEventListener('click', generateNote);
-        DOMElements.exportPdfBtn.addEventListener('click', exportToPDF);
-        DOMElements.copyReportBtn.addEventListener('click', () => copyToClipboard(DOMElements.resultText, DOMElements.copyReportBtn));
-        DOMElements.copyRecsBtn.addEventListener('click', () => copyToClipboard(DOMElements.recommendationsText, DOMElements.copyRecsBtn));
-        DOMElements.copyKeywordsBtn.addEventListener('click', () => copyToClipboard(DOMElements.keywordsText, DOMElements.copyKeywordsBtn));
+                const addSection = (title, textContent) => {
+                    if (!textContent || !textContent.trim()) return;
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(title, 15, y);
+                    y += 8;
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'normal');
+                    const splitText = doc.splitTextToSize(textContent, 180);
+                    splitText.forEach(line => {
+                        if (y > 280) { doc.addPage(); y = 20; }
+                        doc.text(line, 15, y);
+                        y += 7;
+                    });
+                    y += 10;
+                };
+                addSection("Nota de Evolución", DOMElements.resultText.value);
+                addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
+                addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+                const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
+                doc.save(fileName);
+            },
+            copyToClipboard(element, button) {
+                if (!element.value) return;
+                navigator.clipboard.writeText(element.value).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = "¡Copiado!";
+                    setTimeout(() => { button.textContent = originalText; }, 2000);
+                });
+            }
+        };
         
         const App = {
             init() {
                 FormManager.init();
                 ThemeManager.init();
                 WordCounterManager.init();
+                ActionManager.init();
             }
         };
 
