@@ -254,7 +254,11 @@
                 recognition: null, isListening: false, currentTarget: null,
                 init() {
                     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    if (!SpeechRecognition) { console.warn("Reconocimiento de voz no compatible."); return; }
+                    if (!SpeechRecognition) { 
+                        console.warn("Reconocimiento de voz no compatible."); 
+                        document.querySelectorAll('.dictation-btn').forEach(btn => btn.style.display = 'none');
+                        return;
+                    }
                     this.recognition = new SpeechRecognition();
                     this.recognition.continuous = true; this.recognition.interimResults = true; this.recognition.lang = 'es-ES';
                     this.recognition.onresult = (event) => {
@@ -416,8 +420,8 @@
             
             const ActionManager = {
                 init() {
-                    DOMElements.generateBtn.addEventListener('click', this.generateNote.bind(this));
-                    DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF.bind(this));
+                    DOMElements.generateBtn.addEventListener('click', this.generateNote);
+                    DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF);
                     DOMElements.copyAllBtn.addEventListener('click', () => this.copyFullReport());
                     DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, DOMElements.copyReportBtn));
                     DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, DOMElements.copyRecsBtn));
