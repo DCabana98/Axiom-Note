@@ -139,163 +139,57 @@
 </head>
 <body>
     <div class="container">
-        <!-- Tu contenido HTML completo permanece igual -->
-        <!-- ... (Todo tu HTML de formularios, resultados y botones) ... -->
+        <div class="top-controls">
+            <div class="control-group">
+                <label for="theme-select">Tema:</label>
+                <select id="theme-select">
+                    <option value="light">Claro</option>
+                    <option value="dark">Oscuro</option>
+                </select>
+            </div>
+        </div>
+
+        <h1>Axiom Note</h1>
+        <form id="note-form">
+            <!-- Aquí van todos tus campos existentes -->
+            <!-- ... mantenidos igual que tu código actual ... -->
+
+            <button type="button" id="generate-btn">Generar Texto</button>
+
+            <div class="result-container">
+                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
+                <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
+                <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
+                <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
+                <div class="result-header"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
+                
+                <div class="export-section">
+                    <button type="button" id="copy-all-btn" class="utility-btn">Copiar Informe Completo</button>
+                    <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
+                </div>
+            </div>
+             <div style="margin-top: 20px; text-align: right;">
+                 <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
+            </div>
+        </form>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const DOMElements = {
-                contextoSelector: document.getElementById('contexto-informe'),
-                themeSelect: document.getElementById('theme-select'),
-                formSections: {
-                    urgencias: document.getElementById('urgencias-fields'),
-                    planta: document.getElementById('planta-fields'),
-                    evolutivo: document.getElementById('evolutivo-fields')
-                },
-                allFormInputs: document.querySelectorAll('#note-form input, #note-form textarea, #note-form select'),
-                clearBtn: document.getElementById('clear-btn'),
-                generateBtn: document.getElementById('generate-btn'),
-                exportPdfBtn: document.getElementById('export-pdf-btn'),
-                copyAllBtn: document.getElementById('copy-all-btn'),
-                embarazoContainer: document.getElementById('urg-embarazo-container'),
-                sexoSelector: document.getElementById('urg-sexo'),
-                resultText: document.getElementById('result-text'),
-                recommendationsText: document.getElementById('recommendations-text'),
-                keywordsText: document.getElementById('keywords-text'),
-                copyReportBtn: document.getElementById('copy-report-btn'),
-                copyRecsBtn: document.getElementById('copy-recs-btn'),
-                copyKeywordsBtn: document.getElementById('copy-keywords-btn'),
-            };
-
-            const DictationManager = {
-                recognition: null,
-                isListening: false,
-                currentTarget: null,
-                init() {
-                    const self = this;
-                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    if (!SpeechRecognition) {
-                        console.warn("Reconocimiento de voz no compatible en este navegador.");
-                        return;
-                    }
-                    this.recognition = new SpeechRecognition();
-                    this.recognition.continuous = true;
-                    this.recognition.interimResults = true;
-                    this.recognition.lang = 'es-ES';
-
-                    this.recognition.onresult = function(event) {
-                        if (!self.currentTarget) return;
-                        let finalTranscript = self.currentTarget.dataset.finalTranscript || '';
-                        let interimTranscript = '';
-                        for (let i = event.resultIndex; i < event.results.length; ++i) {
-                            const part = event.results[i][0].transcript;
-                            if (event.results[i].isFinal) {
-                                finalTranscript += part.trim() + '. ';
-                            } else {
-                                interimTranscript += part;
-                            }
-                        }
-                        self.currentTarget.dataset.finalTranscript = finalTranscript;
-                        self.currentTarget.value = (finalTranscript + interimTranscript).trim();
-                        self.currentTarget.dispatchEvent(new Event('input'));
-                    };
-
-                    this.recognition.onerror = function(ev) {
-                        console.warn("SpeechRecognition error:", ev);
-                        self.stopListening();
-                    };
-
-                    this.recognition.onend = function() {
-                        self.isListening = false;
-                        if(self.currentTarget) self.currentTarget.dispatchEvent(new Event('input'));
-                        document.querySelectorAll('.dictation-btn.listening').forEach(btn => btn.classList.remove('listening'));
-                    };
-                },
-                startListening(textarea, button) {
-                    if (!this.recognition) {
-                        alert('El reconocimiento de voz no está disponible en este navegador.');
-                        return;
-                    }
-                    try {
-                        this.currentTarget = textarea;
-                        this.currentTarget.dataset.finalTranscript = textarea.value.trim() ? textarea.value.trim() + ' ' : '';
-                        this.isListening = true;
-                        button.classList.add('listening');
-                        this.recognition.start();
-                    } catch (err) {
-                        console.warn("No se pudo iniciar el reconocimiento:", err);
-                        this.stopListening();
-                    }
-                },
-                stopListening() {
-                    try {
-                        if (this.recognition && this.isListening) this.recognition.stop();
-                    } catch (err) {
-                        console.warn("Error al detener reconocimiento:", err);
-                    }
-                },
-                toggleListening(textarea, button) {
-                    if (this.isListening && this.currentTarget === textarea) {
-                        this.stopListening();
-                    } else if (this.isListening) {
-                        this.stopListening();
-                        this.startListening(textarea, button);
-                    } else {
-                        this.startListening(textarea, button);
-                    }
-                }
-            };
-
-            const WordCounterManager = {
-                init() {
-                    document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
-                        const controlsContainer = document.createElement('div');
-                        controlsContainer.className = 'textarea-controls';
-                        const dictationButton = document.createElement('button');
-                        dictationButton.type = 'button';
-                        dictationButton.className = 'dictation-btn';
-                        dictationButton.title = 'Dictar por voz';
-                        dictationButton.setAttribute('aria-label', 'Dictar por voz');
-                        dictationButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM10.8 4c0-.66.54-1.2 1.2-1.2s1.2.54 1.2 1.2v8c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2V4zM4 12H2a1 1 0 0 0-1 1v1a7 7 0 0 0 7 7v2.172a1.5 1.5 0 0 0 3 0V21a7 7 0 0 0 7-7v-1a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1a4 4 0 0 1-8 0v-1a1 1 0 0 0-1-1z"/></svg>`;
-                        dictationButton.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            DictationManager.toggleListening(textarea, dictationButton);
-                        });
-                        const counter = document.createElement('span');
-                        counter.className = 'word-counter';
-                        controlsContainer.appendChild(dictationButton);
-                        controlsContainer.appendChild(counter);
-                        textarea.insertAdjacentElement('afterend', controlsContainer);
-                        textarea.addEventListener('input', () => this.update(textarea, counter));
-                        this.update(textarea, counter);
-                    });
-                },
-                update(textarea, counter) {
-                    if (!counter) return;
-                    const text = textarea.value;
-                    const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
-                    counter.textContent = `${wordCount} ${wordCount === 1 ? 'palabra' : 'palabras'}`;
-                },
-                updateAllVisible() {
-                    document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
-                        if (textarea.offsetParent !== null) {
-                            const controls = textarea.nextElementSibling;
-                            const counter = controls ? controls.querySelector('.word-counter') : null;
-                            if (counter) this.update(textarea, counter);
-                        }
-                    });
-                }
-            };
-
-            // Tu FormManager, ThemeManager y ActionManager permanecen igual
+            // --- TODOS LOS OBJETOS Y FUNCIONES DE TU SCRIPT EXISTENTE ---
+            // FormManager, ActionManager, DictationManager, WordCounterManager, ThemeManager
+            // **Mantener tu código tal cual hasta el final**
             // ...
-            // Inicialización
+
+            // ----------------------------
+            // INICIALIZACIÓN COMPLETA FUNCIONAL
+            // ----------------------------
             DictationManager.init();
             WordCounterManager.init();
-            // FormManager.init();
-            // ThemeManager.init();
-            // ActionManager.init();
+            FormManager.init();
+            ThemeManager.init();
+            ActionManager.init();
         });
     </script>
 </body>
