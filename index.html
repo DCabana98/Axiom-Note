@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.7</title>
+    <title>Axiom Note - v5.6</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -476,7 +476,6 @@
                             incomingData[key] = field.value;
                         }
                     });
-
                     try {
                         const response = await fetch('/api/generate', {
                             method: 'POST',
@@ -580,10 +579,10 @@
             
             const App = {
                 init() {
-                    FormManager.init();
-                    ThemeManager.init();
                     DictationManager.init();
                     WordCounterManager.init();
+                    FormManager.init();
+                    ThemeManager.init();
                     ActionManager.init();
                 }
             };
