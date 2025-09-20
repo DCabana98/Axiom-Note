@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.4</title>
+    <title>Axiom Note - v5.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -270,7 +270,7 @@
                         }
                         this.currentTarget.dataset.finalTranscript = finalTranscript;
                         this.currentTarget.value = finalTranscript + interimTranscript;
-                        this.currentTarget.dispatchEvent(new Event('input')); // Para actualizar contador y guardado
+                        this.currentTarget.dispatchEvent(new Event('input'));
                     };
                     this.recognition.onend = () => this.stopListening();
                     document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
