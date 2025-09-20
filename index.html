@@ -429,10 +429,87 @@
                     DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, DOMElements.copyKeywordsBtn));
                 },
                 async generateNote() {
-                    // La función de generar nota con la llamada a la IA
+                    DOMElements.generateBtn.disabled = true;
+                    DOMElements.generateBtn.textContent = "Generando...";
+                    const contexto = DOMElements.contextoSelector.value;
+                    let incomingData = { contexto };
+                    DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
+                        if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
+                            const key = field.id.replace(`${contexto}-`, '');
+                            incomingData[key] = field.value;
+                        }
+                    });
+                    try {
+                        const response = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ incomingData }),
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                        }
+                        const data = await response.json();
+                        DOMElements.resultText.value = data.report || "";
+                        DOMElements.recommendationsText.value = data.recommendations || "";
+                        DOMElements.keywordsText.value = data.keywords || "";
+                    } catch (error) {
+                        DOMElements.resultText.value = `Error: ${error.message}`;
+                    } finally {
+                        DOMElements.generateBtn.disabled = false;
+                        DOMElements.generateBtn.textContent = "Generar Texto";
+                    }
                 },
                 exportToPDF() {
-                    // La función de exportar a PDF
+                     const reportText = DOMElements.resultText.value;
+                    if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
+                    const contexto = DOMElements.contextoSelector.value;
+                    let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
+                    const activeForm = DOMElements.formSections[contexto];
+                    if(activeForm) {
+                        const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
+                        const edadEl = activeForm.querySelector('input[id*="-edad"]');
+                        const fechaEl = activeForm.querySelector('input[id*="-fecha-hora"]');
+                        if(nombreEl) nombre = nombreEl.value || 'N/A';
+                        if(edadEl) edad = edadEl.value || 'N/A';
+                        if(fechaEl) fecha = fechaEl.value || new Date().toLocaleString('es-ES');
+                    }
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.setFont("Inter", "normal");
+                    let y = 20;
+                    doc.setFontSize(18);
+                    doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
+                    y += 15;
+                    doc.setFontSize(12);
+                    doc.text(`Paciente: ${nombre}`, 15, y);
+                    doc.text(`Edad: ${edad}`, 15, y + 7);
+                    doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
+                    y += 28;
+                    doc.setLineWidth(0.5);
+                    doc.line(15, y, 195, y);
+                    y += 10;
+                    const addSection = (title, textContent) => {
+                        if (!textContent || !textContent.trim()) return;
+                        doc.setFontSize(14);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(title, 15, y);
+                        y += 8;
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'normal');
+                        const splitText = doc.splitTextToSize(textContent, 180);
+                        splitText.forEach(line => {
+                            if (y > 280) { doc.addPage(); y = 20; }
+                            doc.text(line, 15, y);
+                            y += 7;
+                        });
+                        y += 10;
+                    };
+                    addSection("Nota de Evolución", DOMElements.resultText.value);
+                    addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
+                    addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+                    const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
+                    doc.save(fileName);
                 },
                 copyToClipboard(text, button) {
                     if (typeof text !== 'string' || !text) return;
