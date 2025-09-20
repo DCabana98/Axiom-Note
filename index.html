@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.6</title>
+    <title>Axiom Note - v5.5 (corregido)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* (Tu CSS original, no cambios funcionales) */
         :root {
             --bg-color: #f8f9fa; --container-bg-color: #ffffff; --text-color: #212529;
             --header-color: #000000; --label-color: #495057; --border-color: #dee2e6;
@@ -262,6 +263,7 @@
                         console.warn("No se pudo crear SpeechRecognition:", err);
                         return;
                     }
+                    // Configuración
                     this.recognition.continuous = true;
                     this.recognition.interimResults = true;
                     this.recognition.lang = 'es-ES';
@@ -278,6 +280,7 @@
                                 interimTranscript += part;
                             }
                         }
+                        // No borramos dataset.finalTranscript aquí; lo mantenemos como acumulador.
                         self.currentTarget.dataset.finalTranscript = finalTranscript;
                         self.currentTarget.value = (finalTranscript + interimTranscript).trim();
                         self.currentTarget.dispatchEvent(new Event('input'));
@@ -285,17 +288,18 @@
 
                     this.recognition.onerror = function (ev) {
                         console.warn("SpeechRecognition error:", ev);
+                        // En caso de error, aseguramos que el estado no quede inconsistente
                         self.stopListening();
                     };
 
                     this.recognition.onend = function () {
+                        // Cuando finaliza la captura, actualizamos estados y clases
                         self.isListening = false;
-                        if(self.currentTarget) {
-                            self.currentTarget.dispatchEvent(new Event('input'));
-                        }
+                        self.currentTarget = null;
                         document.querySelectorAll('.dictation-btn.listening').forEach(btn => btn.classList.remove('listening'));
                     };
 
+                    // Añadimos botones de dictado y contador a cada textarea de pattern-group
                     document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
                         const controlsContainer = document.createElement('div');
                         controlsContainer.className = 'textarea-controls';
@@ -307,6 +311,7 @@
                         dictationButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM10.8 4c0-.66.54-1.2 1.2-1.2s1.2.54 1.2 1.2v8c0 .66-.54 1.2-1.2 1.2s-1.2-.54-1.2-1.2V4zM4 12H2a1 1 0 0 0-1 1v1a7 7 0 0 0 7 7v2.172a1.5 1.5 0 0 0 3 0V21a7 7 0 0 0 7-7v-1a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1a4 4 0 0 1-8 0v-1a1 1 0 0 0-1-1z"/></svg>`;
                         dictationButton.addEventListener('click', (e) => {
                             e.preventDefault();
+                            // Toggle: si otro textarea estaba escuchando, parar ese primero
                             if (self.isListening && self.currentTarget !== textarea) {
                                 self.stopListening();
                             }
@@ -316,10 +321,12 @@
                             }
                             self.startListening(textarea, dictationButton);
                         });
+
                         const counter = document.createElement('span');
                         counter.className = 'word-counter';
                         controlsContainer.appendChild(dictationButton);
                         controlsContainer.appendChild(counter);
+                        // Insertamos después del textarea
                         textarea.insertAdjacentElement('afterend', controlsContainer);
                     });
                 },
@@ -330,13 +337,17 @@
                     }
                     try {
                         this.currentTarget = textarea;
+                        // preservamos texto anterior como parte del transcript final
                         this.currentTarget.dataset.finalTranscript = textarea.value.trim() ? textarea.value.trim() + ' ' : '';
                         this.isListening = true;
                         button.classList.add('listening');
+                        // start puede lanzar si ya está en ejecución en algunos navegadores
                         this.recognition.start();
                     } catch (err) {
                         console.warn("No se pudo iniciar el reconocimiento:", err);
-                        this.stopListening();
+                        this.isListening = false;
+                        this.currentTarget = null;
+                        button.classList.remove('listening');
                     }
                 },
                 stopListening() {
@@ -345,6 +356,10 @@
                     } catch (err) {
                         console.warn("Error al detener reconocimiento:", err);
                     }
+                    // Nota: no borramos dataset.finalTranscript para preservar lo dictado
+                    this.isListening = false;
+                    this.currentTarget = null;
+                    document.querySelectorAll('.dictation-btn.listening').forEach(btn => btn.classList.remove('listening'));
                 }
             };
 
@@ -472,12 +487,15 @@
                     DOMElements.generateBtn.textContent = "Generando...";
                     const contexto = DOMElements.contextoSelector.value;
                     let incomingData = { contexto };
+                    // Recolectar sólo campos visibles del contexto actual
                     DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
-                        if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
+                        if (field.id && field.value.trim() !== '' && field.closest('.hidden') === null) {
                             const key = field.id.replace(`${contexto}-`, '');
-                            incomingData[key] = field.value;
+                            incomingData[field.id] = field.value;
                         }
                     });
+
+                    // Intento principal: llamar a /api/generate
                     try {
                         const response = await fetch('/api/generate', {
                             method: 'POST',
@@ -485,22 +503,131 @@
                             body: JSON.stringify({ incomingData }),
                         });
                         if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                            // Si el servidor responde con error json, intentamos parsearlo
+                            let errorData = {};
+                            try { errorData = await response.json(); } catch (e) { /* ignore */ }
+                            throw new Error(errorData.error || `Error del servidor: ${response.status} ${response.statusText}`);
                         }
                         const data = await response.json();
                         DOMElements.resultText.value = data.report || "";
                         DOMElements.recommendationsText.value = data.recommendations || "";
                         DOMElements.keywordsText.value = data.keywords || "";
                     } catch (error) {
-                        DOMElements.resultText.value = `Error: ${error.message}`;
+                        // Fallback local si no hay backend o hay error de red
+                        console.warn("Fallo en /api/generate, generando localmente:", error);
+                        const local = this.localGenerate(incomingData);
+                        DOMElements.resultText.value = local.report;
+                        DOMElements.recommendationsText.value = local.recommendations;
+                        DOMElements.keywordsText.value = local.keywords;
                     } finally {
                         DOMElements.generateBtn.disabled = false;
                         DOMElements.generateBtn.textContent = "Generar Texto";
                     }
                 },
+                // Generador local sencillo que crea un informe a partir de campos disponibles
+                localGenerate(data) {
+                    const contexto = data.contexto || 'N/A';
+                    const lines = [];
+                    const recs = [];
+                    const keywords = new Set();
+
+                    if (contexto === 'urgencias') {
+                        lines.push("Motivo de consulta:");
+                        if (data['urg-motivo']) { lines.push(data['urg-motivo']); thisAddKeywords(data['urg-motivo']); }
+                        if (data['urg-historia']) { lines.push("\nHistoria actual:\n" + data['urg-historia']); thisAddKeywords(data['urg-historia']); }
+                        if (data['urg-exploracion']) { lines.push("\nExploración física:\n" + data['urg-exploracion']); thisAddKeywords(data['urg-exploracion']); }
+                        if (data['urg-pruebas']) { lines.push("\nPruebas realizadas:\n" + data['urg-pruebas']); thisAddKeywords(data['urg-pruebas']); }
+                        if (data['urg-plan']) { recs.push(data['urg-plan']); thisAddKeywords(data['urg-plan']); }
+                    } else if (contexto === 'planta') {
+                        lines.push("Ingreso en planta. Información relevante:");
+                        if (data['planta-motivo_ingreso']) { lines.push(data['planta-motivo_ingreso']); thisAddKeywords(data['planta-motivo_ingreso']); }
+                        if (data['planta-exploracion']) { lines.push("\nExploración:\n" + data['planta-exploracion']); thisAddKeywords(data['planta-exploracion']); }
+                        if (data['planta-pruebas']) { lines.push("\nPruebas:\n" + data['planta-pruebas']); thisAddKeywords(data['planta-pruebas']); }
+                        if (data['planta-tratamiento']) { recs.push(data['planta-tratamiento']); thisAddKeywords(data['planta-tratamiento']); }
+                    } else if (contexto === 'evolutivo') {
+                        lines.push("Evolución del paciente:");
+                        if (data['evo-fecha-hora']) lines.push("Fecha: " + data['evo-fecha-hora']);
+                        if (data['evo-resumen']) { lines.push("\nResumen:\n" + data['evo-resumen']); thisAddKeywords(data['evo-resumen']); }
+                        if (data['evo-cambios']) { lines.push("\nCambios/Eventos:\n" + data['evo-cambios']); thisAddKeywords(data['evo-cambios']); }
+                        if (data['evo-plan']) { recs.push(data['evo-plan']); thisAddKeywords(data['evo-plan']); }
+                    } else {
+                        lines.push("Informe generado automáticamente con campos disponibles:");
+                        for (const key in data) {
+                            if (key === 'contexto') continue;
+                            lines.push(`${key}: ${data[key]}`);
+                            thisAddKeywords(data[key]);
+                        }
+                    }
+
+                    function extractKeywordsFromText(txt) {
+                        // heurística simple: tomar palabras largas y únicas
+                        if (!txt) return [];
+                        const words = txt.replace(/[^\w\sáéíóúñÁÉÍÓÚÑ]/g,'').toLowerCase().split(/\s+/).filter(Boolean);
+                        const freq = {};
+                        words.forEach(w => { if (w.length > 3) freq[w] = (freq[w] || 0) + 1; });
+                        const sorted = Object.keys(freq).sort((a,b) => freq[b]-freq[a]);
+                        return sorted.slice(0, 6);
+                    }
+
+                    function thisAddKeywords(txt) {
+                        extractKeywordsFromText(txt).forEach(k => keywords.add(k));
+                    }
+
+                    const report = lines.join('\n\n').trim() || 'No hay datos suficientes para generar el informe.';
+                    const recText = recs.join('\n\n') || 'Sin recomendaciones registradas.';
+                    const kwArray = Array.from(keywords).slice(0, 12);
+                    return { report, recommendations: recText, keywords: kwArray.join(', ') };
+                },
                 exportToPDF() {
-                    // ... (exportToPDF function remains the same)
+                     const reportText = DOMElements.resultText.value;
+                    if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
+                    const contexto = DOMElements.contextoSelector.value;
+                    let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
+                    const activeForm = DOMElements.formSections[contexto];
+                    if(activeForm) {
+                        const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
+                        const edadEl = activeForm.querySelector('input[id*="-edad"]');
+                        const fechaEl = activeForm.querySelector('input[id*="-fecha-hora"]');
+                        if(nombreEl) nombre = nombreEl.value || 'N/A';
+                        if(edadEl) edad = edadEl.value || 'N/A';
+                        if(fechaEl) fecha = fechaEl.value || new Date().toLocaleString('es-ES');
+                    }
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.setFont("Inter", "normal");
+                    let y = 20;
+                    doc.setFontSize(18);
+                    doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
+                    y += 15;
+                    doc.setFontSize(12);
+                    doc.text(`Paciente: ${nombre}`, 15, y);
+                    doc.text(`Edad: ${edad}`, 15, y + 7);
+                    doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
+                    y += 28;
+                    doc.setLineWidth(0.5);
+                    doc.line(15, y, 195, y);
+                    y += 10;
+                    const addSection = (title, textContent) => {
+                        if (!textContent || !textContent.trim()) return;
+                        doc.setFontSize(14);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(title, 15, y);
+                        y += 8;
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'normal');
+                        const splitText = doc.splitTextToSize(textContent, 180);
+                        splitText.forEach(line => {
+                            if (y > 280) { doc.addPage(); y = 20; }
+                            doc.text(line, 15, y);
+                            y += 7;
+                        });
+                        y += 10;
+                    };
+                    addSection("Nota de Evolución", DOMElements.resultText.value);
+                    addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
+                    addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+                    const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
+                    doc.save(fileName);
                 },
                 copyToClipboard(text, button) {
                     if (typeof text !== 'string' || !text) return;
@@ -531,10 +658,10 @@
             
             const App = {
                 init() {
-                    DictationManager.init();
-                    WordCounterManager.init();
                     FormManager.init();
                     ThemeManager.init();
+                    DictationManager.init();
+                    WordCounterManager.init();
                     ActionManager.init();
                 }
             };
@@ -544,4 +671,3 @@
     </script>
 </body>
 </html>
-
