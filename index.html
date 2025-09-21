@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.5</title>
+    <title>Axiom Note - v5.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,54 +100,7 @@
         details > summary::-webkit-details-marker { display: none; }
         details > summary h3::before { content: '▶'; margin-right: 10px; font-size: 0.8em; display: inline-block; transition: transform 0.2s; }
         details[open] > summary h3::before { transform: rotate(90deg); }
-        .bottom-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px; }
-
-        /* Estilos para el Historial de Versiones */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; transition: opacity 0.3s;
-        }
-        .modal-content {
-            background-color: var(--container-bg-color); color: var(--text-color);
-            border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 90%; max-width: 750px;
-            height: 80vh; max-height: 600px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
-            border-top: 4px solid var(--accent-color);
-        }
-        .modal-header {
-            padding: 15px 25px; border-bottom: 1px solid var(--border-color);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-header h2 { font-size: 1.5em; }
-        .modal-close-btn { font-size: 2em; line-height: 1; border: none; background: none; color: var(--label-color); cursor: pointer; }
-        .modal-body { display: flex; flex: 1; overflow: hidden; }
-        #history-list-container {
-            width: 35%; border-right: 1px solid var(--border-color);
-            overflow-y: auto; padding: 10px 0;
-        }
-        #history-list { list-style: none; margin: 0; padding: 0; }
-        #history-list li {
-            padding: 12px 20px; cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
-        }
-        #history-list li:hover { background-color: var(--result-bg-color); }
-        #history-list li.active { background-color: var(--accent-color); color: white; font-weight: bold; }
-        #history-preview-container { flex: 1; padding: 20px; overflow-y: auto; }
-        #history-preview-container h4 { margin-top: 0; }
-        #history-preview { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 0.9em; }
-        #history-no-versions { text-align: center; color: var(--label-color); padding-top: 50px; }
-        .modal-footer {
-            padding: 15px 25px; border-top: 1px solid var(--border-color); text-align: right;
-        }
-        #restore-version-btn {
-            background-color: var(--accent-color); color: white; padding: 10px 20px; font-weight: bold;
-        }
-        #restore-version-btn:disabled { background-color: #5f6368; cursor: not-allowed; }
+        .bottom-actions { text-align: right; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -247,33 +200,9 @@
             </div>
             
             <div class="bottom-actions">
-                <button type="button" id="history-btn" class="utility-btn">📜 Historial</button>
                 <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
             </div>
         </form>
-    </div>
-
-    <div id="history-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="history-title">Historial de Versiones</h2>
-                <button id="modal-close-btn" class="modal-close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="history-list-container">
-                    <ul id="history-list">
-                    </ul>
-                    <p id="history-no-versions" class="hidden">No hay versiones guardadas para este contexto.</p>
-                </div>
-                <div id="history-preview-container">
-                    <h4>Vista Previa de la Versión</h4>
-                    <pre id="history-preview">Seleccione una versión de la lista para ver su contenido.</pre>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="restore-version-btn" class="utility-btn" disabled>Restaurar Versión</button>
-            </div>
-        </div>
     </div>
     
     <script>
@@ -299,15 +228,6 @@
                 copyReportBtn: document.getElementById('copy-report-btn'),
                 copyRecsBtn: document.getElementById('copy-recs-btn'),
                 copyKeywordsBtn: document.getElementById('copy-keywords-btn'),
-                
-                historyBtn: document.getElementById('history-btn'),
-                historyModal: document.getElementById('history-modal'),
-                modalCloseBtn: document.getElementById('modal-close-btn'),
-                historyTitle: document.getElementById('history-title'),
-                historyList: document.getElementById('history-list'),
-                historyPreview: document.getElementById('history-preview'),
-                historyNoVersions: document.getElementById('history-no-versions'),
-                restoreVersionBtn: document.getElementById('restore-version-btn'),
             };
 
             const WordCounterManager = {
@@ -459,8 +379,6 @@
                         DOMElements.recommendationsText.value = data.recommendations || "";
                         DOMElements.keywordsText.value = data.keywords || "";
 
-                        HistoryManager.saveVersion();
-
                     } catch (error) {
                         Toastify({ text: `Error: ${error.message}`, duration: 4000, style: { background: "linear-gradient(to right, #e52d27, #b31217)" } }).showToast();
                     } finally {
@@ -544,134 +462,12 @@
                 }
             };
             
-            const HistoryManager = {
-                currentHistory: [],
-                selectedVersion: null,
-
-                init() {
-                    DOMElements.historyBtn.addEventListener('click', () => this.show());
-                    
-                    // CORRECCIÓN FINAL: Asignar listeners de forma más directa y separada.
-                    DOMElements.modalCloseBtn.addEventListener('click', () => this.hide());
-                    DOMElements.historyModal.addEventListener('click', (e) => {
-                        // Cierra el modal solo si se hace clic directamente en el fondo (overlay)
-                        if (e.target === DOMElements.historyModal) {
-                            this.hide();
-                        }
-                    });
-                    
-                    DOMElements.restoreVersionBtn.addEventListener('click', () => this.restore());
-                },
-
-                load() {
-                    const contexto = DOMElements.contextoSelector.value;
-                    const historyKey = `axiomNoteHistory_${contexto}`;
-                    this.currentHistory = JSON.parse(localStorage.getItem(historyKey)) || [];
-                },
-
-                saveVersion() {
-                    const contexto = DOMElements.contextoSelector.value;
-                    const historyKey = `axiomNoteHistory_${contexto}`;
-                    this.load(); 
-
-                    const now = new Date();
-                    const newVersion = {
-                        timestamp: now.getTime(),
-                        readableTime: now.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'medium' }),
-                        formData: {},
-                        generatedText: {
-                            report: DOMElements.resultText.value,
-                            recommendations: DOMElements.recommendationsText.value,
-                            keywords: DOMElements.keywordsText.value,
-                        }
-                    };
-
-                    DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
-                        if (field.id) newVersion.formData[field.id] = field.value;
-                    });
-
-                    this.currentHistory.unshift(newVersion);
-
-                    if (this.currentHistory.length > 20) {
-                        this.currentHistory = this.currentHistory.slice(0, 20);
-                    }
-
-                    localStorage.setItem(historyKey, JSON.stringify(this.currentHistory));
-                    Toastify({ text: "Versión guardada en el historial.", duration: 2000, gravity: "bottom", position: "right" }).showToast();
-                },
-
-                show() {
-                    this.load();
-                    const contexto = DOMElements.contextoSelector.value;
-                    DOMElements.historyTitle.textContent = `Historial de Versiones - ${contexto.charAt(0).toUpperCase() + contexto.slice(1)}`;
-                    DOMElements.historyList.innerHTML = '';
-                    DOMElements.historyPreview.textContent = 'Seleccione una versión de la lista para ver su contenido.';
-                    DOMElements.restoreVersionBtn.disabled = true;
-                    this.selectedVersion = null;
-
-                    if (this.currentHistory.length === 0) {
-                        DOMElements.historyNoVersions.classList.remove('hidden');
-                    } else {
-                        DOMElements.historyNoVersions.classList.add('hidden');
-                        this.currentHistory.forEach((version, index) => {
-                            const li = document.createElement('li');
-                            li.textContent = version.readableTime;
-                            li.dataset.index = index;
-                            li.addEventListener('click', () => this.preview(version, li));
-                            DOMElements.historyList.appendChild(li);
-                        });
-                    }
-                    
-                    DOMElements.historyModal.classList.remove('hidden');
-                },
-
-                hide() {
-                    DOMElements.historyModal.classList.add('hidden');
-                },
-
-                preview(version, listItemElement) {
-                    this.selectedVersion = version;
-
-                    document.querySelectorAll('#history-list li').forEach(li => li.classList.remove('active'));
-                    listItemElement.classList.add('active');
-                    
-                    let previewContent = `NOTA DE EVOLUCIÓN\n${"-".repeat(20)}\n${version.generatedText.report}\n\n`;
-                    previewContent += `RECOMENDACIONES Y PLAN\n${"-".repeat(20)}\n${version.generatedText.recommendations}`;
-                    DOMElements.historyPreview.textContent = previewContent;
-
-                    DOMElements.restoreVersionBtn.disabled = false;
-                },
-
-                restore() {
-                    if (!this.selectedVersion) return;
-
-                    for (const fieldId in this.selectedVersion.formData) {
-                        const element = document.getElementById(fieldId);
-                        if (element) element.value = this.selectedVersion.formData[fieldId];
-                    }
-
-                    DOMElements.resultText.value = this.selectedVersion.generatedText.report || "";
-                    DOMElements.recommendationsText.value = this.selectedVersion.generatedText.recommendations || "";
-                    DOMElements.keywordsText.value = this.selectedVersion.generatedText.keywords || "";
-
-                    Toastify({
-                        text: `Versión de las ${this.selectedVersion.readableTime} restaurada.`,
-                        duration: 3000,
-                        style: { background: "linear-gradient(to right, #00b09b, #96c93d)" }
-                    }).showToast();
-                    
-                    this.hide();
-                    FormManager.saveState();
-                }
-            };
-            
             const App = {
                 init() {
                     FormManager.init();
                     ThemeManager.init();
                     WordCounterManager.init();
                     ActionManager.init();
-                    HistoryManager.init();
                 }
             };
 
