@@ -472,7 +472,6 @@
                 exportToPDF() {
                      const reportText = DOMElements.resultText.value;
                     if (!reportText.trim()) {
-                        // CORREGIDO: Reemplazado alert con Toastify
                         Toastify({ text: "No hay informe generado para exportar.", duration: 3000, style: { background: "linear-gradient(to right, #ffc107, #ff9800)" } }).showToast();
                         return;
                     }
@@ -551,13 +550,16 @@
 
                 init() {
                     DOMElements.historyBtn.addEventListener('click', () => this.show());
-                    // CORREGIDO: Se reemplazan los listeners individuales por uno solo más robusto.
+                    
+                    // CORRECCIÓN FINAL: Asignar listeners de forma más directa y separada.
+                    DOMElements.modalCloseBtn.addEventListener('click', () => this.hide());
                     DOMElements.historyModal.addEventListener('click', (e) => {
-                        // Cierra el modal si se hace clic en el fondo (overlay) o en el botón de cerrar (o un hijo del botón)
-                        if (e.target === DOMElements.historyModal || e.target.closest('.modal-close-btn')) {
+                        // Cierra el modal solo si se hace clic directamente en el fondo (overlay)
+                        if (e.target === DOMElements.historyModal) {
                             this.hide();
                         }
                     });
+                    
                     DOMElements.restoreVersionBtn.addEventListener('click', () => this.restore());
                 },
 
