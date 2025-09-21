@@ -35,24 +35,33 @@ app.post('/api/generate', async (req, res) => {
       return res.status(400).json({ error: "No se recibieron datos." });
     }
     
-    console.log('✅ Datos recibidos, preparando para enviar a la IA:', incomingData);
+    // --- PASO DE LIMPIEZA DE DATOS ---
+    // Creamos un objeto limpio para los datos del paciente, sin los prefijos 'urg-', 'planta-', etc.
+    const patientData = {};
+    for (const key in incomingData) {
+      // Reemplazamos el prefijo por una cadena vacía
+      const cleanKey = key.replace(/^(urg-|planta-|evo-)/, '');
+      patientData[cleanKey] = incomingData[key];
+    }
+    // ------------------------------------
 
-    // Prompt simplificado para ser más rápido, pero manteniendo la esencia profesional
+    console.log('✅ Datos limpios, preparando para enviar a la IA:', patientData);
+
     const prompt = `
       Actúa como un Médico Senior con 20 años de experiencia, experto en redacción de informes.
-      Transforma los siguientes datos brutos en una nota de evolución clínica formal, estructurada y clara.
+      Transforma los siguientes datos brutos, que pueden contener lenguaje coloquial o errores, en una nota de evolución clínica formal, estructurada y clara.
       Expande abreviaturas médicas (ej. 'TA' a 'Tensión Arterial', 'tto' a 'tratamiento') y corrige el estilo.
       Organiza la información en secciones lógicas y omite los campos no rellenados.
       
-      Datos del paciente en contexto de '${incomingData.contexto}':
-      - Motivo: ${incomingData.motivo || 'N/A'}
-      - Historia: ${incomingData.historia || 'N/A'}
-      - Constantes: ${incomingData.triaje || 'N/A'}
-      - Antecedentes: ${incomingData.antecedentes || 'N/A'}
-      - Exploración: ${incomingData.exploracion || 'N/A'}
-      - Pruebas: ${incomingData.pruebas || 'N/A'}
-      - Sospecha: ${incomingData.sospecha || 'N/A'}
-      - Plan: ${incomingData.plan || 'N/A'}
+      Datos del paciente en contexto de '${patientData.contexto}':
+      - Motivo: ${patientData.motivo || 'N/A'}
+      - Historia: ${patientData.historia || 'N/A'}
+      - Constantes: ${patientData.triaje || 'N/A'}
+      - Antecedentes: ${patientData.antecedentes || 'N/A'}
+      - Exploración: ${patientData.exploracion || 'N/A'}
+      - Pruebas: ${patientData.pruebas || 'N/A'}
+      - Sospecha: ${patientData.sospecha || 'N/A'}
+      - Plan: ${patientData.plan || 'N/A'}
 
       Genera únicamente el texto del informe final, de forma concisa.
     `;
