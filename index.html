@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.8</title>
+    <title>Axiom Note - v5.9</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -348,36 +348,57 @@
             };
 
             const ActionManager = {
-                // NUEVO: Plantillas de prompt "invisibles"
                 promptTemplates: {
                     urgencias: {
                         role: "Actúa como un médico de urgencias experimentado. Eres rápido, eficiente y te centras en lo crítico.",
-                        task: "Tu objetivo es crear un informe de primera asistencia conciso y directo. La información debe ser clara para un traspaso rápido a planta o para que otro colega de urgencias pueda entender el caso de un vistazo. Céntrate en la sospecha diagnóstica y el plan de acción inmediato.",
-                        // Salida simulada específica para este contexto
-                        simulatedOutput: {
-                            report: "Paciente con dolor torácico opresivo de 2 horas de evolución. ECG muestra elevación del ST. Se activa protocolo de Síndrome Coronario Agudo.",
-                            recommendations: "Plan inmediato: administrar AAS, solicitar analítica cardíaca urgente y contactar con Cardiología para valoración.",
-                            keywords: "SCA, Dolor torácico, Urgencias, ECG"
-                        }
+                        task: "Tu objetivo es crear un informe de primera asistencia conciso y directo. La información debe ser clara para un traspaso rápido a planta o para que otro colega de urgencias pueda entender el caso de un vistazo. Céntrate en la sospecha diagnóstica y el plan de acción inmediato."
                     },
                     planta: {
-                        role: "Actúa como un médico especialista hospitalario (ej. internista, cardiólogo) que recibe a un paciente para su ingreso.",
-                        task: "Tu objetivo es redactar un informe de ingreso completo y bien fundamentado. Debes integrar los antecedentes del paciente con los hallazgos actuales para justificar el ingreso. Detalla el juicio diagnóstico y elabora un plan de tratamiento y cuidados inicial para los próximos días.",
-                        simulatedOutput: {
-                            report: "Ingresa paciente de 72 años, con antecedentes de HTA y DM2, por insuficiencia cardíaca descompensada. Exploración física compatible con sobrecarga hídrica.",
-                            recommendations: "Se inicia tratamiento con diuréticos IV, dieta hiposódica y monitorización de constantes. Se solicita ecocardiograma para reevaluación de la función ventricular.",
-                            keywords: "Ingreso, Insuficiencia Cardíaca, HTA, DM2, Diuréticos"
-                        }
+                        role: "Actúa como un médico especialista hospitalario que recibe a un paciente para su ingreso.",
+                        task: "Tu objetivo es redactar un informe de ingreso completo y bien fundamentado. Integra los antecedentes con los hallazgos actuales para justificar el ingreso. Detalla el juicio diagnóstico y elabora un plan de tratamiento y cuidados inicial para los próximos días."
                     },
                     evolutivo: {
                         role: "Actúa como un médico de planta que realiza el seguimiento diario de un paciente ingresado.",
-                        task: "Tu objetivo es redactar una nota de evolución clara. Compara el estado general del paciente con el día anterior, destaca cualquier evento o cambio significativo (mejoría, empeoramiento, fiebre, etc.), interpreta los resultados de las nuevas pruebas y ajusta el plan a seguir para las próximas 24-48 horas.",
-                        simulatedOutput: {
-                            report: "Paciente en su segundo día de ingreso, se mantiene afebril y con mejoría de los edemas. Buena respuesta al tratamiento diurético.",
-                            recommendations: "Mantener misma pauta de tratamiento. Control analítico mañana. Vigilar balance hídrico. Pendiente de resultados de ecocardiograma.",
-                            keywords: "Evolutivo, Mejoría, Afebril, Diuréticos"
-                        }
+                        task: "Tu objetivo es redactar una nota de evolución clara. Compara el estado general del paciente con el día anterior, destaca cualquier evento o cambio significativo e interpreta los resultados de nuevas pruebas, ajustando el plan a seguir."
                     }
+                },
+                
+                getSimulatedOutput(contexto, formData) {
+                    // Helper para obtener datos o devolver un texto por defecto
+                    const get = (key, fallback) => formData[key] || fallback;
+
+                    const nombre = get(`${contexto}-nombre`, 'el paciente');
+                    const edad = get(`${contexto}-edad`, '');
+                    const sexo = get(`${contexto}-sexo`, 'sexo no especificado');
+
+                    if (contexto === 'urgencias') {
+                        const motivo = get('urg-motivo', 'motivo no especificado');
+                        const historia = get('urg-historia', 'no referida');
+                        return {
+                            report: `Paciente, ${nombre}, ${edad ? edad + ' años,' : ''} de sexo ${sexo.toLowerCase()}, acude a urgencias por ${motivo}. El cuadro clínico actual, según refiere, es: "${historia}". Tras una valoración inicial, se orienta el caso como una posible emergencia médica que requiere más investigación.`,
+                            recommendations: `Se solicitan pruebas complementarias (analítica con marcadores, ECG) para filiar la causa de ${motivo}. Se inicia tratamiento sintomático y se mantiene al paciente en observación hasta obtener resultados.`,
+                            keywords: `Urgencias, ${nombre}, ${motivo}`.slice(0, 50)
+                        };
+                    }
+                    if (contexto === 'planta') {
+                        const motivo = get('planta-motivo_ingreso', 'motivo no especificado');
+                        const antecedentes = get('planta-antecedentes', 'no relevantes');
+                        return {
+                            report: `Se realiza el ingreso de ${nombre} (${edad} años), quien fue derivado desde urgencias por ${motivo}. Antecedentes personales de interés: ${antecedentes}.`,
+                            recommendations: `El plan inicial consiste en estabilización, inicio de tratamiento específico para ${motivo} y solicitud de pruebas de imagen. Se pautarán cuidados de enfermería y control de constantes vitales.`,
+                            keywords: `Ingreso, Planta, ${nombre}, ${motivo}`.slice(0, 50)
+                        };
+                    }
+                    if (contexto === 'evolutivo') {
+                        const resumen = get('evo-resumen', 'sin cambios significativos');
+                        const cambios = get('evo-cambios', 'ninguno');
+                        return {
+                            report: `Evolutivo del paciente ${nombre}. Estado general: ${resumen}. Cambios o eventos relevantes en las últimas 24h: ${cambios}.`,
+                            recommendations: `Se mantiene la pauta de tratamiento actual. Se está a la espera de resultados de pruebas pendientes para reevaluar el plan terapéutico. Próximo control en 24 horas.`,
+                            keywords: `Evolutivo, ${nombre}, Seguimiento`.slice(0, 50)
+                        };
+                    }
+                    return { report: '', recommendations: '', keywords: '' };
                 },
 
                 init() {
@@ -404,11 +425,21 @@
                         const contexto = DOMElements.contextoSelector.value;
                         const template = this.promptTemplates[contexto];
                         
-                        // Aquí es donde construiríamos el "Master Prompt" para una API real
-                        // let masterPrompt = `${template.role}\n${template.task}\n\n### DATOS ###\n...`;
-                        // console.log("Master Prompt generado:", masterPrompt);
+                        // Paso 1: Recoger los datos del formulario activo
+                        const formData = {};
+                        const activeForm = DOMElements.formSections[contexto];
+                        activeForm.querySelectorAll('input, textarea, select').forEach(field => {
+                            if (field.id && field.value) {
+                                formData[field.id] = field.value;
+                            }
+                        });
+                        
+                        // Paso 2: (Simulado) Construir el Master Prompt para una futura API real
+                        let datosParaPrompt = Object.entries(formData).map(([key, value]) => `- ${key}: ${value}`).join('\n');
+                        const masterPrompt = `${template.role}\n\n${template.task}\n\n### DATOS DEL PACIENTE ###\n${datosParaPrompt}`;
+                        console.log("Master Prompt que se enviaría a la API:", masterPrompt);
 
-                        DOMElements.resultText.value = "[ 1/3 ] Contactando con el asistente clínico...";
+                        DOMElements.resultText.value = "[ 1/3 ] Construyendo prompt inteligente...";
                         await new Promise(res => setTimeout(res, 800)); 
 
                         DOMElements.resultText.value = "[ 2/3 ] El asistente está redactando el informe...";
@@ -417,8 +448,8 @@
                         DOMElements.resultText.value = "[ 3/3 ] Formateando y finalizando...";
                         await new Promise(res => setTimeout(res, 600));
                         
-                        // Usamos la salida simulada específica del contexto
-                        const data = template.simulatedOutput;
+                        // Paso 3: Usar una simulación que utiliza los datos recogidos
+                        const data = this.getSimulatedOutput(contexto, formData);
 
                         DOMElements.resultText.value = data.report || "";
                         DOMElements.recommendationsText.value = data.recommendations || "";
@@ -521,4 +552,3 @@
     </script>
 </body>
 </html>
-
