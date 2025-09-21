@@ -1,30 +1,86 @@
-const prompt = `
-  Actúa como un Jefe de Servicio de Medicina Interna con 25 años de experiencia clínica, reconocido a nivel nacional por la calidad y claridad de sus informes médicos. Tu método de trabajo es riguroso, basado en la evidencia y siempre centrado en la pertinencia clínica.
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
 
-  Tu misión es convertir los siguientes datos brutos, que pueden ser incompletos, desordenados o contener abreviaturas, en un informe de evolución impecable.
+dotenv.config();
 
-  Reglas de Oro que NUNCA debes romper:
-  1.  **Estructura SOAP:** Organiza toda la información obligatoriamente bajo los epígrafes del formato SOAP:
-      - **S (Subjetivo):** Lo que el paciente refiere (motivo de consulta, historia actual).
-      - **O (Objetivo):** Lo que tú observas y mides (constantes, exploración física, resultados de pruebas).
-      - **A (Análisis):** Tu interpretación de los datos (sospecha diagnóstica, posibles diagnósticos diferenciales).
-      - **P (Plan):** El plan de acción inmediato (tratamiento, pruebas a solicitar, interconsultas).
-  2.  **Precisión Terminológica:** Traduce cualquier lenguaje coloquial o abreviatura a terminología médica precisa y universalmente aceptada (ej. 'dolor de barriga' -> 'dolor abdominal', 'tto' -> 'tratamiento').
-  3.  **Concisión Profesional:** Sé conciso y directo. Evita frases innecesarias. Cada palabra debe tener un propósito.
-  4.  **Manejo de Datos Faltantes:** Si un campo de datos no fue proporcionado, omítelo. Si un dato es crucial y no está, menciónalo en la sección 'Plan' (ej. 'P: ... Se solicita analítica urgente para valorar función renal.').
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  A continuación, los datos del paciente en el contexto de '${incomingData.contexto}':
-  - Nombre: ${incomingData.nombre}
-  - Edad: ${incomingData.edad}
-  - Sexo: ${incomingData.sexo}
-  - Motivo de consulta (S): ${incomingData.motivo}
-  - Historia actual (S): ${incomingData.historia}
-  - Constantes y triaje (O): ${incomingData.triaje}
-  - Antecedentes (S/O): ${incomingData.antecedentes}
-  - Exploración física (O): ${incomingData.exploracion}
-  - Pruebas realizadas (O): ${incomingData.pruebas}
-  - Sospecha diagnóstica (A): ${incomingData.sospecha}
-  - Plan inmediato (P): ${incomingData.plan}
+const app = express();
+// El puerto lo gestiona Vercel, pero lo dejamos para pruebas locales
+const PORT = 3000; 
 
-  Genera exclusivamente el informe clínico final, sin saludos, introducciones ni despedidas.
-`;
+// Verificamos que la API Key esté cargada
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error("La variable de entorno GEMINI_API_KEY no está definida.");
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.post('/api/generate', async (req, res) => {
+  try {
+    const { incomingData } = req.body;
+    if (!incomingData) {
+      return res.status(400).json({ error: "No se recibieron datos." });
+    }
+    
+    console.log('✅ Datos recibidos, preparando para enviar a la IA:', incomingData);
+
+    // Prompt simplificado para ser más rápido, pero manteniendo la esencia profesional
+    const prompt = `
+      Actúa como un Médico Senior con 20 años de experiencia, experto en redacción de informes.
+      Transforma los siguientes datos brutos en una nota de evolución clínica formal, estructurada y clara.
+      Expande abreviaturas médicas (ej. 'TA' a 'Tensión Arterial', 'tto' a 'tratamiento') y corrige el estilo.
+      Organiza la información en secciones lógicas y omite los campos no rellenados.
+      
+      Datos del paciente en contexto de '${incomingData.contexto}':
+      - Motivo: ${incomingData.motivo || 'N/A'}
+      - Historia: ${incomingData.historia || 'N/A'}
+      - Constantes: ${incomingData.triaje || 'N/A'}
+      - Antecedentes: ${incomingData.antecedentes || 'N/A'}
+      - Exploración: ${incomingData.exploracion || 'N/A'}
+      - Pruebas: ${incomingData.pruebas || 'N/A'}
+      - Sospecha: ${incomingData.sospecha || 'N/A'}
+      - Plan: ${incomingData.plan || 'N/A'}
+
+      Genera únicamente el texto del informe final, de forma concisa.
+    `;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('✅ Respuesta recibida de la IA.');
+
+    res.json({ 
+      report: text,
+      recommendations: "", // Dejamos estos vacíos por ahora
+      keywords: ""
+    });
+
+  } catch (error) {
+    console.error("❌ Error en la función /api/generate:", error);
+    res.status(500).json({ error: "Error interno al generar el informe." });
+  }
+});
+
+// Esta parte solo se usa en local, Vercel gestiona el puerto por su cuenta.
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
+  });
+}
+
+// Exportamos la app para que Vercel pueda usarla
+export default app;
