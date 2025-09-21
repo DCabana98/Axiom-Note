@@ -26,7 +26,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- VERSIÓN DE DEPURACIÓN DEL ENDPOINT ---
 app.post('/api/generate', async (req, res) => {
   try {
     const { incomingData } = req.body;
@@ -34,28 +33,51 @@ app.post('/api/generate', async (req, res) => {
       return res.status(400).json({ error: "No se recibieron datos." });
     }
     
-    // Mantenemos el paso de limpieza de datos, que es crucial
     const patientData = {};
     for (const key in incomingData) {
       const cleanKey = key.replace(/^(urg-|planta-|evo-)/, '');
       patientData[cleanKey] = incomingData[key];
     }
     
-    console.log('✅ Datos limpios para la prueba de eco:', patientData);
+    console.log('✅ Datos limpios enviados a la IA:', patientData);
 
-    // --- PRUEBA DE ECO ---
-    // En lugar de llamar a la IA, devolvemos los datos que hemos procesado.
-    // Usamos JSON.stringify para formatearlo de forma legible.
+    // Usamos el prompt optimizado que es más rápido para Vercel
+    const prompt = `
+      Actúa como un Médico Senior con 20 años de experiencia, experto en redacción de informes.
+      Transforma los siguientes datos brutos en una nota de evolución clínica formal, estructurada y clara.
+      Expande abreviaturas médicas (ej. 'TA' a 'Tensión Arterial', 'tto' a 'tratamiento') y corrige el estilo y posibles faltas de ortografía.
+      Organiza la información en secciones lógicas y omite los campos no rellenados.
+      
+      Datos del paciente en contexto de '${patientData.contexto}':
+      - Nombre: ${patientData.nombre || 'No especificado'}
+      - Edad: ${patientData.edad || 'N/A'}
+      - Motivo de consulta: ${patientData.motivo || 'N/A'}
+      - Historia actual: ${patientData.historia || 'N/A'}
+      - Constantes y triaje: ${patientData.triaje || 'N/A'}
+      - Antecedentes: ${patientData.antecedentes || 'N/A'}
+      - Exploración física: ${patientData.exploracion || 'N/A'}
+      - Pruebas realizadas: ${patientData.pruebas || 'N/A'}
+      - Sospecha diagnóstica: ${patientData.sospecha || 'N/A'}
+      - Plan inmediato: ${patientData.plan || 'N/A'}
+
+      Genera únicamente el texto del informe final, de forma concisa y profesional.
+    `;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('✅ Respuesta recibida de la IA.');
+
     res.json({ 
-      report: `--- PRUEBA DE DATOS DEL SERVIDOR ---\n\n${JSON.stringify(patientData, null, 2)}`,
-      recommendations: "Si en el texto de arriba ves los datos que introdujiste con nombres de campo correctos (ej. 'nombre', 'motivo'), significa que este paso funciona.",
-      keywords: "Si los campos de arriba están vacíos o tienen nombres incorrectos (ej. 'urg-nombre'), hemos encontrado el error."
+      report: text,
+      recommendations: "",
+      keywords: ""
     });
-    // ---------------------
 
   } catch (error) {
     console.error("❌ Error en la función /api/generate:", error);
-    res.status(500).json({ error: "Error interno durante la prueba de eco." });
+    res.status(500).json({ error: "Error interno al generar el informe." });
   }
 });
 
