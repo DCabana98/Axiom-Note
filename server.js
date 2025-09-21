@@ -15,19 +15,18 @@ const PORT = 3000;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
-app.use(express.static(__dirname));
+// --- LÍNEA MODIFICADA ---
+// Ahora le decimos a Express que la carpeta de archivos estáticos es 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+// -------------------------
+
 app.use(express.json());
 
-// --- NUEVO BLOQUE DE CÓDIGO ---
-// Esta es la ruta explícita que soluciona el problema en Vercel.
-// Le dice a Express que cuando reciba una petición GET a la ruta raíz ('/')...
-app.get('/', (req, res) => {
-  // ...debe responder enviando el archivo 'index.html' que se encuentra en nuestro directorio.
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-// --------------------------------
+// Ya no necesitamos la ruta GET para '/', porque express.static('public')
+// servirá automáticamente el index.html que está dentro de 'public'.
 
 app.post('/api/generate', async (req, res) => {
+  // ... (el resto del código de la API no cambia)
   try {
     const { incomingData } = req.body;
     console.log('✅ Datos recibidos, preparando para enviar a la IA:', incomingData);
