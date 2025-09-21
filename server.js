@@ -10,10 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-// El puerto lo gestiona Vercel, pero lo dejamos para pruebas locales
 const PORT = 3000; 
 
-// Verificamos que la API Key esté cargada
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("La variable de entorno GEMINI_API_KEY no está definida.");
 }
@@ -28,6 +26,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// --- VERSIÓN DE DEPURACIÓN DEL ENDPOINT ---
 app.post('/api/generate', async (req, res) => {
   try {
     const { incomingData } = req.body;
@@ -35,61 +34,35 @@ app.post('/api/generate', async (req, res) => {
       return res.status(400).json({ error: "No se recibieron datos." });
     }
     
-    // --- PASO DE LIMPIEZA DE DATOS ---
-    // Creamos un objeto limpio para los datos del paciente, sin los prefijos 'urg-', 'planta-', etc.
+    // Mantenemos el paso de limpieza de datos, que es crucial
     const patientData = {};
     for (const key in incomingData) {
-      // Reemplazamos el prefijo por una cadena vacía
       const cleanKey = key.replace(/^(urg-|planta-|evo-)/, '');
       patientData[cleanKey] = incomingData[key];
     }
-    // ------------------------------------
-
-    console.log('✅ Datos limpios, preparando para enviar a la IA:', patientData);
-
-    const prompt = `
-      Actúa como un Médico Senior con 20 años de experiencia, experto en redacción de informes.
-      Transforma los siguientes datos brutos, que pueden contener lenguaje coloquial o errores, en una nota de evolución clínica formal, estructurada y clara.
-      Expande abreviaturas médicas (ej. 'TA' a 'Tensión Arterial', 'tto' a 'tratamiento') y corrige el estilo.
-      Organiza la información en secciones lógicas y omite los campos no rellenados.
-      
-      Datos del paciente en contexto de '${patientData.contexto}':
-      - Motivo: ${patientData.motivo || 'N/A'}
-      - Historia: ${patientData.historia || 'N/A'}
-      - Constantes: ${patientData.triaje || 'N/A'}
-      - Antecedentes: ${patientData.antecedentes || 'N/A'}
-      - Exploración: ${patientData.exploracion || 'N/A'}
-      - Pruebas: ${patientData.pruebas || 'N/A'}
-      - Sospecha: ${patientData.sospecha || 'N/A'}
-      - Plan: ${patientData.plan || 'N/A'}
-
-      Genera únicamente el texto del informe final, de forma concisa.
-    `;
     
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    console.log('✅ Datos limpios para la prueba de eco:', patientData);
 
-    console.log('✅ Respuesta recibida de la IA.');
-
+    // --- PRUEBA DE ECO ---
+    // En lugar de llamar a la IA, devolvemos los datos que hemos procesado.
+    // Usamos JSON.stringify para formatearlo de forma legible.
     res.json({ 
-      report: text,
-      recommendations: "", // Dejamos estos vacíos por ahora
-      keywords: ""
+      report: `--- PRUEBA DE DATOS DEL SERVIDOR ---\n\n${JSON.stringify(patientData, null, 2)}`,
+      recommendations: "Si en el texto de arriba ves los datos que introdujiste con nombres de campo correctos (ej. 'nombre', 'motivo'), significa que este paso funciona.",
+      keywords: "Si los campos de arriba están vacíos o tienen nombres incorrectos (ej. 'urg-nombre'), hemos encontrado el error."
     });
+    // ---------------------
 
   } catch (error) {
     console.error("❌ Error en la función /api/generate:", error);
-    res.status(500).json({ error: "Error interno al generar el informe." });
+    res.status(500).json({ error: "Error interno durante la prueba de eco." });
   }
 });
 
-// Esta parte solo se usa en local, Vercel gestiona el puerto por su cuenta.
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
   });
 }
 
-// Exportamos la app para que Vercel pueda usarla
 export default app;
