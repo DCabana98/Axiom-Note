@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.9</title>
+    <title>Axiom Note - v5.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
         :root {
             --bg-color: #f8f9fa; --container-bg-color: #ffffff; --text-color: #212529;
@@ -24,21 +22,21 @@
             --input-bg-color: #2c2c2c; --result-bg-color: #252525; --shadow-color: rgba(0, 0, 0, 0.2);
             --utility-btn-bg: #343a40; --utility-btn-text: #e9ecef; --utility-btn-border: #495057;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            margin: 0; 
+            padding: 20px; 
             transition: background-color 0.3s, color 0.3s;
         }
-        .container {
-            max-width: 800px; margin: 0 auto;
-            background-color: var(--container-bg-color);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px var(--shadow-color);
-            position: relative;
+        .container { 
+            max-width: 800px; margin: 0 auto; 
+            background-color: var(--container-bg-color); 
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px var(--shadow-color); 
+            position: relative; 
             transition: background-color 0.3s;
             border-top: 4px solid var(--accent-color);
         }
@@ -55,13 +53,13 @@
         .pattern-group { margin-bottom: 25px; position: relative; }
         h3 { color: var(--label-color); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 30px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--label-color); font-size: 0.95em; }
-        input, textarea, select {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 0.9em;
-            font-family: inherit;
-            background-color: var(--input-bg-color); color: var(--text-color);
-            transition: all 0.2s ease-in-out;
+        input, textarea, select { 
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; 
+            box-sizing: border-box; 
+            font-size: 0.9em; 
+            font-family: inherit; 
+            background-color: var(--input-bg-color); color: var(--text-color); 
+            transition: all 0.2s ease-in-out; 
         }
         input:focus, textarea:focus, select:focus {
             outline: none;
@@ -69,42 +67,31 @@
             box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.3);
         }
         textarea { min-height: 90px; resize: vertical; }
-        #result-text { min-height: 300px; }
-        #recommendations-text { min-height: 200px; }
-        #keywords-text { min-height: 100px; }
-
-        #generate-btn {
-            width: 100%; padding: 16px; font-size: 1.1em; font-weight: bold;
-            background: var(--accent-color);
+        #generate-btn { 
+            width: 100%; padding: 16px; font-size: 1.1em; font-weight: bold; 
+            background: var(--accent-color); 
             color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;
             transition: all 0.2s ease-in-out;
             box-shadow: 0 4px 15px rgba(77, 171, 247, 0.2);
-            display: flex; justify-content: center; align-items: center;
         }
         #generate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(77, 171, 247, 0.3); }
         #generate-btn:disabled { background: #5f6368; cursor: not-allowed; box-shadow: none; transform: none; }
-        .spinner {
-            display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;
-            margin-right: 10px; vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .result-container { margin-top: 40px; }
         .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: 20px; }
         h2 { color: var(--header-color); margin: 0; }
         .utility-btn { padding: 8px 12px; font-size: 0.9em; background-color: var(--utility-btn-bg); color: var(--utility-btn-text); border: 1px solid var(--utility-btn-border); border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
         .utility-btn:hover { background-color: var(--border-color); }
         .hidden { display: none; }
+        #result-text { min-height: 250px; }
+        #recommendations-text { min-height: 150px; }
+        #keywords-text { min-height: 80px; }
+        .export-section { margin-top: 30px; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; justify-content: center; gap: 15px; }
+        #export-pdf-btn, #copy-all-btn { font-weight: bold; }
         .word-counter {
             position: absolute; bottom: 12px; right: 15px; font-size: 0.75em;
             color: var(--label-color); background-color: var(--input-bg-color); padding: 2px 6px;
             border-radius: 4px; opacity: 0.7; pointer-events: none;
         }
-        details > summary { cursor: pointer; list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        details > summary h3::before { content: '▶'; margin-right: 10px; font-size: 0.8em; display: inline-block; transition: transform 0.2s; }
-        details[open] > summary h3::before { transform: rotate(90deg); }
-        .bottom-actions { text-align: right; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -132,7 +119,7 @@
             
             <div id="urgencias-fields" class="hidden">
                 <div class="form-section datos-grid">
-                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="datetime-local" id="urg-fecha-hora"></div>
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
                     <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
                     <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
                     <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
@@ -148,48 +135,35 @@
                 <div class="pattern-group"><label for="urg-sospecha">Sospecha Diagnóstica</label><textarea id="urg-sospecha" placeholder="Ej: Síndrome Coronario Agudo..."></textarea></div>
                 <div class="pattern-group"><label for="urg-plan">Plan Inmediato y Tratamiento</label><textarea id="urg-plan" placeholder="Ej: Se administra AAS, se solicita analítica..."></textarea></div>
             </div>
-
             <div id="planta-fields" class="hidden">
-                <details open>
-                    <summary><h3>Información Inicial</h3></summary>
-                    <div class="form-section datos-grid">
-                        <div><label for="planta-nombre">Nombre del Paciente</label><input type="text" id="planta-nombre"></div>
-                        <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
-                        <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
-                   </div>
-                </details>
-                <details>
-                    <summary><h3>Bloque 1: Contexto del Paciente</h3></summary>
-                    <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
-                    <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
-                    <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
-                </details>
-                <details>
-                    <summary><h3>Bloque 2: Evaluación Clínica</h3></summary>
-                    <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
-                    <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
-                </details>
-                 <details>
-                    <summary><h3>Bloque 3: Plan de Actuación</h3></summary>
-                    <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
-                    <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
-                    <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
-                </details>
+                 <h3>Información Inicial</h3>
+                 <div class="form-section datos-grid">
+                    <div><label for="planta-nombre">Nombre del Paciente</label><input type="text" id="planta-nombre"></div>
+                    <div><label for="planta-edad">Edad</label><input type="number" id="planta-edad"></div>
+                    <div><label for="planta-sexo">Sexo</label><select id="planta-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
+                 </div>
+                 <h3>Bloque 1: Contexto del Paciente</h3>
+                 <div class="pattern-group"><label for="planta-motivo_ingreso">Motivo de Ingreso</label><textarea id="planta-motivo_ingreso" placeholder="Ej: Ingresa desde Urgencias por insuficiencia cardíaca descompensada."></textarea></div>
+                 <div class="pattern-group"><label for="planta-alergias">Alergias</label><textarea id="planta-alergias" placeholder="Ej: Penicilina, AINEs, Contrastes Yodados..."></textarea></div>
+                 <div class="pattern-group"><label for="planta-antecedentes">Antecedentes Personales</label><textarea id="planta-antecedentes" placeholder="Ej: HTA, DM2 en tto con Metformina, apendicectomía en la infancia."></textarea></div>
+                 <h3>Bloque 2: Evaluación Clínica</h3>
+                 <div class="pattern-group"><label for="planta-exploracion">Exploración Física</label><textarea id="planta-exploracion" placeholder="Ej: Consciente y orientado. Eupneico. ACR: Tonos rítmicos. AP: Crepitantes en bases. EEII: Edemas con fóvea."></textarea></div>
+                 <div class="pattern-group"><label for="planta-pruebas">Resultados de Pruebas Complementarias</label><textarea id="planta-pruebas" placeholder="Ej: Analítica: Leucocitos normales, PCR 45, Pro-BNP elevado. Rx Tórax: Signos de congestión pulmonar."></textarea></div>
+                 <h3>Bloque 3: Plan de Actuación</h3>
+                 <div class="pattern-group"><label for="planta-tratamiento">Plan de Tratamiento Inicial</label><textarea id="planta-tratamiento" placeholder="Ej: Se inicia tratamiento con diuréticos IV (Furosemida), oxigenoterapia."></textarea></div>
+                 <div class="pattern-group"><label for="planta-cuidados">Plan de Cuidados de Enfermería</label><textarea id="planta-cuidados" placeholder="Ej: Monitorización de constantes cada 8h, control de diuresis y balance hídrico, dieta hiposódica."></textarea></div>
+                 <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
             </div>
-            
             <div id="evolutivo-fields" class="hidden">
-                <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="datetime-local" id="evo-fecha-hora"></div>
-                <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
-                <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
-                <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
+                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
             </div>
 
-            <button type="button" id="generate-btn">
-                <span class="spinner hidden"></span>
-                <span class="button-text">Generar Texto</span>
-            </button>
+            <button type="button" id="generate-btn">Generar Texto</button>
 
-            <div class="result-container" aria-live="polite">
+            <div class="result-container">
                 <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
                 <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
@@ -202,9 +176,8 @@
                     <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
                 </div>
             </div>
-            
-            <div class="bottom-actions">
-                <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
+             <div style="margin-top: 20px; text-align: right;">
+                 <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
             </div>
         </form>
     </div>
@@ -245,7 +218,6 @@
                     });
                 },
                 update(textarea, counter) {
-                    if (!counter) return;
                     const text = textarea.value;
                     const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
                     counter.textContent = `${wordCount} ${wordCount === 1 ? 'palabra' : 'palabras'}`;
@@ -254,7 +226,7 @@
                     document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
                         if (textarea.offsetParent !== null) {
                             const counter = textarea.nextElementSibling;
-                            if (counter && counter.classList.contains('word-counter')) {
+                            if(counter && counter.classList.contains('word-counter')) {
                                 this.update(textarea, counter);
                             }
                         }
@@ -321,8 +293,7 @@
                     const field = document.getElementById(fieldId);
                     if (field && !field.value) {
                         const now = new Date();
-                        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                        const formattedDateTime = now.toISOString().slice(0, 16);
+                        const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                         field.value = formattedDateTime;
                         field.dispatchEvent(new Event('input'));
                     }
@@ -346,129 +317,62 @@
                 },
                 apply(theme) { document.body.classList.toggle('dark-mode', theme === 'dark'); }
             };
-
+            
             const ActionManager = {
-                promptTemplates: {
-                    urgencias: {
-                        role: "Actúa como un médico de urgencias experimentado. Eres rápido, eficiente y te centras en lo crítico.",
-                        task: "Tu objetivo es crear un informe de primera asistencia conciso y directo. La información debe ser clara para un traspaso rápido a planta o para que otro colega de urgencias pueda entender el caso de un vistazo. Céntrate en la sospecha diagnóstica y el plan de acción inmediato."
-                    },
-                    planta: {
-                        role: "Actúa como un médico especialista hospitalario que recibe a un paciente para su ingreso.",
-                        task: "Tu objetivo es redactar un informe de ingreso completo y bien fundamentado. Integra los antecedentes con los hallazgos actuales para justificar el ingreso. Detalla el juicio diagnóstico y elabora un plan de tratamiento y cuidados inicial para los próximos días."
-                    },
-                    evolutivo: {
-                        role: "Actúa como un médico de planta que realiza el seguimiento diario de un paciente ingresado.",
-                        task: "Tu objetivo es redactar una nota de evolución clara. Compara el estado general del paciente con el día anterior, destaca cualquier evento o cambio significativo e interpreta los resultados de nuevas pruebas, ajustando el plan a seguir."
-                    }
-                },
-                
-                getSimulatedOutput(contexto, formData) {
-                    // Helper para obtener datos o devolver un texto por defecto
-                    const get = (key, fallback) => formData[key] || fallback;
-
-                    const nombre = get(`${contexto}-nombre`, 'el paciente');
-                    const edad = get(`${contexto}-edad`, '');
-                    const sexo = get(`${contexto}-sexo`, 'sexo no especificado');
-
-                    if (contexto === 'urgencias') {
-                        const motivo = get('urg-motivo', 'motivo no especificado');
-                        const historia = get('urg-historia', 'no referida');
-                        return {
-                            report: `Paciente, ${nombre}, ${edad ? edad + ' años,' : ''} de sexo ${sexo.toLowerCase()}, acude a urgencias por ${motivo}. El cuadro clínico actual, según refiere, es: "${historia}". Tras una valoración inicial, se orienta el caso como una posible emergencia médica que requiere más investigación.`,
-                            recommendations: `Se solicitan pruebas complementarias (analítica con marcadores, ECG) para filiar la causa de ${motivo}. Se inicia tratamiento sintomático y se mantiene al paciente en observación hasta obtener resultados.`,
-                            keywords: `Urgencias, ${nombre}, ${motivo}`.slice(0, 50)
-                        };
-                    }
-                    if (contexto === 'planta') {
-                        const motivo = get('planta-motivo_ingreso', 'motivo no especificado');
-                        const antecedentes = get('planta-antecedentes', 'no relevantes');
-                        return {
-                            report: `Se realiza el ingreso de ${nombre} (${edad} años), quien fue derivado desde urgencias por ${motivo}. Antecedentes personales de interés: ${antecedentes}.`,
-                            recommendations: `El plan inicial consiste en estabilización, inicio de tratamiento específico para ${motivo} y solicitud de pruebas de imagen. Se pautarán cuidados de enfermería y control de constantes vitales.`,
-                            keywords: `Ingreso, Planta, ${nombre}, ${motivo}`.slice(0, 50)
-                        };
-                    }
-                    if (contexto === 'evolutivo') {
-                        const resumen = get('evo-resumen', 'sin cambios significativos');
-                        const cambios = get('evo-cambios', 'ninguno');
-                        return {
-                            report: `Evolutivo del paciente ${nombre}. Estado general: ${resumen}. Cambios o eventos relevantes en las últimas 24h: ${cambios}.`,
-                            recommendations: `Se mantiene la pauta de tratamiento actual. Se está a la espera de resultados de pruebas pendientes para reevaluar el plan terapéutico. Próximo control en 24 horas.`,
-                            keywords: `Evolutivo, ${nombre}, Seguimiento`.slice(0, 50)
-                        };
-                    }
-                    return { report: '', recommendations: '', keywords: '' };
-                },
-
                 init() {
                     DOMElements.generateBtn.addEventListener('click', this.generateNote.bind(this));
                     DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF.bind(this));
                     DOMElements.copyAllBtn.addEventListener('click', () => this.copyFullReport());
-                    DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value));
-                    DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value));
-                    DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value));
+                    DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, DOMElements.copyReportBtn));
+                    DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, DOMElements.copyRecsBtn));
+                    DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, DOMElements.copyKeywordsBtn));
                 },
                 async generateNote() {
-                    const spinner = DOMElements.generateBtn.querySelector('.spinner');
-                    const buttonText = DOMElements.generateBtn.querySelector('.button-text');
-
                     DOMElements.generateBtn.disabled = true;
-                    spinner.classList.remove('hidden');
-                    buttonText.textContent = "Generando...";
-                    
-                    DOMElements.resultText.value = "";
-                    DOMElements.recommendationsText.value = "";
-                    DOMElements.keywordsText.value = "";
-                    
+                    DOMElements.generateBtn.textContent = "Generando...";
+                    DOMElements.resultText.value = "[ 1/3 ] Contactando con el asistente clínico...";
+
+                    const contexto = DOMElements.contextoSelector.value;
+                    let incomingData = { contexto };
+                    DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
+                        if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
+                            const key = field.id.replace(`${contexto}-`, '');
+                            incomingData[key] = field.value;
+                        }
+                    });
+
                     try {
-                        const contexto = DOMElements.contextoSelector.value;
-                        const template = this.promptTemplates[contexto];
+                        await new Promise(res => setTimeout(res, 1000));
+                        DOMElements.resultText.value = "[ 2/3 ] El asistente está redactando el informe...";
                         
-                        // Paso 1: Recoger los datos del formulario activo
-                        const formData = {};
-                        const activeForm = DOMElements.formSections[contexto];
-                        activeForm.querySelectorAll('input, textarea, select').forEach(field => {
-                            if (field.id && field.value) {
-                                formData[field.id] = field.value;
-                            }
+                        const response = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ incomingData }),
                         });
                         
-                        // Paso 2: (Simulado) Construir el Master Prompt para una futura API real
-                        let datosParaPrompt = Object.entries(formData).map(([key, value]) => `- ${key}: ${value}`).join('\n');
-                        const masterPrompt = `${template.role}\n\n${template.task}\n\n### DATOS DEL PACIENTE ###\n${datosParaPrompt}`;
-                        console.log("Master Prompt que se enviaría a la API:", masterPrompt);
-
-                        DOMElements.resultText.value = "[ 1/3 ] Construyendo prompt inteligente...";
-                        await new Promise(res => setTimeout(res, 800)); 
-
-                        DOMElements.resultText.value = "[ 2/3 ] El asistente está redactando el informe...";
-                        await new Promise(res => setTimeout(res, 1200));
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
+                        }
 
                         DOMElements.resultText.value = "[ 3/3 ] Formateando y finalizando...";
-                        await new Promise(res => setTimeout(res, 600));
+                        await new Promise(res => setTimeout(res, 800));
                         
-                        // Paso 3: Usar una simulación que utiliza los datos recogidos
-                        const data = this.getSimulatedOutput(contexto, formData);
-
+                        const data = await response.json();
                         DOMElements.resultText.value = data.report || "";
                         DOMElements.recommendationsText.value = data.recommendations || "";
                         DOMElements.keywordsText.value = data.keywords || "";
-
                     } catch (error) {
-                        Toastify({ text: `Error: ${error.message}`, duration: 4000, style: { background: "linear-gradient(to right, #e52d27, #b31217)" } }).showToast();
+                        DOMElements.resultText.value = `Error: ${error.message}`;
                     } finally {
                         DOMElements.generateBtn.disabled = false;
-                        spinner.classList.add('hidden');
-                        buttonText.textContent = "Generar Texto";
+                        DOMElements.generateBtn.textContent = "Generar Texto";
                     }
                 },
                 exportToPDF() {
-                     const reportText = DOMElements.resultText.value;
-                    if (!reportText.trim()) {
-                        Toastify({ text: "No hay informe generado para exportar.", duration: 3000, style: { background: "linear-gradient(to right, #ffc107, #ff9800)" } }).showToast();
-                        return;
-                    }
+                    const reportText = DOMElements.resultText.value;
+                    if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
                     const contexto = DOMElements.contextoSelector.value;
                     let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
                     const activeForm = DOMElements.formSections[contexto];
@@ -490,7 +394,7 @@
                     doc.setFontSize(12);
                     doc.text(`Paciente: ${nombre}`, 15, y);
                     doc.text(`Edad: ${edad}`, 15, y + 7);
-                    doc.text(`Fecha del Informe: ${fecha.replace('T', ' ')}`, 15, y + 14);
+                    doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
                     y += 28;
                     doc.setLineWidth(0.5);
                     doc.line(15, y, 195, y);
@@ -517,24 +421,30 @@
                     const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
                     doc.save(fileName);
                 },
-                copyToClipboard(text) {
-                    if (typeof text !== 'string' || !text.trim()) {
-                        Toastify({ text: "No hay nada que copiar", duration: 3000, style: { background: "linear-gradient(to right, #ffc107, #ff9800)" } }).showToast();
-                        return;
-                    };
+                copyToClipboard(text, button) {
+                    if (!text) return;
                     navigator.clipboard.writeText(text).then(() => {
-                        Toastify({ text: "¡Copiado al portapapeles!", duration: 3000, style: { background: "linear-gradient(to right, #00b09b, #96c93d)" } }).showToast();
+                        const originalText = button.textContent;
+                        button.textContent = "¡Copiado!";
+                        setTimeout(() => { button.textContent = originalText; }, 2000);
                     });
                 },
                 copyFullReport() {
                     const report = DOMElements.resultText.value;
                     const recs = DOMElements.recommendationsText.value;
                     const keywords = DOMElements.keywordsText.value;
+
+                    if (!report && !recs && !keywords) {
+                        alert('No hay nada que copiar.');
+                        return;
+                    }
+
                     let fullText = "";
                     if(report) fullText += `NOTA DE EVOLUCIÓN\n${"-".repeat(20)}\n${report}\n\n`;
                     if(recs) fullText += `RECOMENDACIONES Y PLAN\n${"-".repeat(20)}\n${recs}\n\n`;
                     if(keywords) fullText += `RESUMEN (PALABRAS CLAVE)\n${"-".repeat(20)}\n${keywords}`;
-                    this.copyToClipboard(fullText.trim());
+
+                    this.copyToClipboard(fullText.trim(), DOMElements.copyAllBtn);
                 }
             };
             
@@ -552,3 +462,4 @@
     </script>
 </body>
 </html>
+
