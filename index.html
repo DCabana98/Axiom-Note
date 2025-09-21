@@ -218,6 +218,7 @@
                     });
                 },
                 update(textarea, counter) {
+                    if (!counter) return;
                     const text = textarea.value;
                     const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(Boolean).length;
                     counter.textContent = `${wordCount} ${wordCount === 1 ? 'palabra' : 'palabras'}`;
@@ -226,7 +227,7 @@
                     document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
                         if (textarea.offsetParent !== null) {
                             const counter = textarea.nextElementSibling;
-                            if(counter && counter.classList.contains('word-counter')) {
+                            if (counter && counter.classList.contains('word-counter')) {
                                 this.update(textarea, counter);
                             }
                         }
@@ -331,7 +332,7 @@
                     DOMElements.generateBtn.disabled = true;
                     DOMElements.generateBtn.textContent = "Generando...";
                     DOMElements.resultText.value = "[ 1/3 ] Contactando con el asistente clínico...";
-
+                    
                     const contexto = DOMElements.contextoSelector.value;
                     let incomingData = { contexto };
                     DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
@@ -371,7 +372,7 @@
                     }
                 },
                 exportToPDF() {
-                    const reportText = DOMElements.resultText.value;
+                     const reportText = DOMElements.resultText.value;
                     if (!reportText.trim()) { alert('No hay informe generado para exportar.'); return; }
                     const contexto = DOMElements.contextoSelector.value;
                     let nombre = 'N/A', edad = 'N/A', fecha = new Date().toLocaleString('es-ES');
@@ -422,7 +423,7 @@
                     doc.save(fileName);
                 },
                 copyToClipboard(text, button) {
-                    if (!text) return;
+                    if (typeof text !== 'string' || !text) return;
                     navigator.clipboard.writeText(text).then(() => {
                         const originalText = button.textContent;
                         button.textContent = "¡Copiado!";
