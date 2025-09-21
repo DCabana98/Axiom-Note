@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.3.3</title>
+    <title>Axiom Note - v5.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,11 +66,6 @@
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.3);
         }
-        input[readonly] {
-            background-color: var(--result-bg-color);
-            cursor: not-allowed;
-            opacity: 0.8;
-        }
         textarea { min-height: 90px; resize: vertical; }
         #generate-btn { 
             width: 100%; padding: 16px; font-size: 1.1em; font-weight: bold; 
@@ -124,7 +119,7 @@
             
             <div id="urgencias-fields" class="hidden">
                 <div class="form-section datos-grid">
-                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora" readonly></div>
+                    <div><label for="urg-fecha-hora">Fecha y Hora de Llegada</label><input type="text" id="urg-fecha-hora"></div>
                     <div><label for="urg-nombre">Nombre</label><input type="text" id="urg-nombre"></div>
                     <div><label for="urg-edad">Edad</label><input type="number" id="urg-edad"></div>
                     <div><label for="urg-sexo">Sexo</label><select id="urg-sexo"><option value="Hombre">Hombre</option><option value="Mujer">Mujer</option></select></div>
@@ -160,7 +155,7 @@
                 <div class="pattern-group"><label for="planta-intervenciones">Justificación de Intervenciones</label><textarea id="planta-intervenciones" placeholder="Ej: Se canaliza VVP para sueroterapia. Profilaxis tromboembólica con heparina."></textarea></div>
             </div>
             <div id="evolutivo-fields" class="hidden">
-                <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora" readonly></div>
+                <div class="pattern-group"><label for="evo-fecha-hora">Fecha y Hora</label><input type="text" id="evo-fecha-hora"></div>
                 <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
                 <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
                 <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
@@ -273,11 +268,6 @@
                     if (activeSection) {
                         activeSection.classList.remove('hidden');
                         this.loadState(contexto);
-                        
-                        const firstEditableInput = activeSection.querySelector('input:not([readonly]), textarea');
-                        if (firstEditableInput) {
-                            setTimeout(() => firstEditableInput.focus(), 0);
-                        }
                     }
                     this.setInitialDateTime();
                     this.toggleEmbarazoField();
@@ -287,10 +277,10 @@
                     const contexto = DOMElements.contextoSelector.value;
                     const activeForm = DOMElements.formSections[contexto];
                     if (activeForm) {
-                        activeForm.querySelectorAll('input:not([readonly]), textarea, select').forEach(field => {
+                        activeForm.querySelectorAll('input, textarea, select').forEach(field => {
                             if (field.tagName === 'SELECT') field.selectedIndex = 0; else field.value = '';
                         });
-                        this.saveState();
+                        localStorage.removeItem(`axiomNoteData_${contexto}`);
                     }
                     this.setInitialDateTime();
                     WordCounterManager.updateAllVisible();
@@ -301,7 +291,7 @@
                 },
                 setDateTime(fieldId) {
                     const field = document.getElementById(fieldId);
-                    if (field) {
+                    if (field && !field.value) {
                         const now = new Date();
                         const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                         field.value = formattedDateTime;
@@ -355,15 +345,21 @@
                         await new Promise(res => setTimeout(res, 1000));
                         DOMElements.resultText.value = "[ 2/3 ] El asistente está redactando el informe...";
                         
-                        const data = {
-                            report: `Informe de ejemplo para ${contexto}.\nGenerado a las ${new Date().toLocaleTimeString()}`,
-                            recommendations: "Seguimiento según protocolo.",
-                            keywords: "Ejemplo, Simulación, Informe"
+                        const response = await fetch('/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ incomingData }),
+                        });
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
                         }
 
                         DOMElements.resultText.value = "[ 3/3 ] Formateando y finalizando...";
                         await new Promise(res => setTimeout(res, 800));
                         
+                        const data = await response.json();
                         DOMElements.resultText.value = data.report || "";
                         DOMElements.recommendationsText.value = data.recommendations || "";
                         DOMElements.keywordsText.value = data.keywords || "";
@@ -451,22 +447,6 @@
                     this.copyToClipboard(fullText.trim(), DOMElements.copyAllBtn);
                 }
             };
-
-            const KeyboardShortcutsManager = {
-                init() {
-                    document.addEventListener('keydown', (e) => {
-                        if (e.ctrlKey && e.key === 'Enter') {
-                            e.preventDefault();
-                            DOMElements.generateBtn.click();
-                        }
-
-                        if (e.ctrlKey && e.key === 'Delete') {
-                            e.preventDefault();
-                            DOMElements.clearBtn.click();
-                        }
-                    });
-                }
-            };
             
             const App = {
                 init() {
@@ -474,7 +454,6 @@
                     ThemeManager.init();
                     WordCounterManager.init();
                     ActionManager.init();
-                    KeyboardShortcutsManager.init();
                 }
             };
 
@@ -483,4 +462,3 @@
     </script>
 </body>
 </html>
-
