@@ -82,18 +82,30 @@ ${JSON.stringify(incomingData, null, 2)}
 `;
         break;
 
+      // --- INICIO: BLOQUE 'EVOLUTIVO' MODIFICADO ---
       case 'evolutivo':
+        const resumen = incomingData['evo-resumen'] || 'No reportado.';
+        const cambios = incomingData['evo-cambios'] || 'No reportado.';
+        const plan = incomingData['evo-plan'] || 'No reportado.';
+
         masterPrompt = `
-Actúa como un médico de planta redactando una nota de evolución concisa y profesional. Transforma los siguientes puntos en un párrafo narrativo.
+Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido y coherente.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-A continuación se presentan los datos para generar el EVOLUTIVO DE PLANTA en español:
+
+**Integra la siguiente información en una única nota de evolución fluida:**
+
+* **Estado General del Paciente:** ${resumen}
+* **Eventos Relevantes:** ${cambios}
+* **Plan a Seguir:** ${plan}
+
 ---
-${JSON.stringify(incomingData, null, 2)}
+**Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
 ---
 `;
         break;
+      // --- FIN: BLOQUE 'EVOLUTIVO' MODIFICADO ---
 
       default:
         masterPrompt = "Contexto no reconocido.";
