@@ -1,303 +1,323 @@
 :root {
-    --bg-color: #f8f9fa;
-    --container-bg-color: #ffffff;
-    --text-color: #212529;
-    --header-color: #000000;
-    --label-color: #495057;
-    --border-color: #dee2e6;
-    --input-bg-color: #ffffff;
-    --result-bg-color: #f8f9fa;
-    --shadow-color: rgba(0, 0, 0, 0.05);
-    --utility-btn-bg: #f1f3f5;
-    --utility-btn-text: #495057;
-    --utility-btn-border: #ced4da;
-    --accent-color: #4dabf7;
+    --bg-color: #f8f9fa;
+    --container-bg-color: #ffffff;
+    --text-color: #212529;
+    --header-color: #000000;
+    --label-color: #495057;
+    --border-color: #dee2e6;
+    --input-bg-color: #ffffff;
+    --result-bg-color: #f8f9fa;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --utility-btn-bg: #f1f3f5;
+    --utility-btn-text: #495057;
+    --utility-btn-border: #ced4da;
+    --accent-color: #4dabf7;
+
+    /* --- NUEVAS VARIABLES PARA GLASSMORPHISM --- */
+    --container-bg-glass: rgba(255, 255, 255, 0.6);
+    --border-color-glass: rgba(255, 255, 255, 0.8);
 }
 
 body.dark-mode {
-    --bg-color: #121212;
-    --container-bg-color: #1e1e1e;
-    --text-color: #e0e0e0;
-    --header-color: #ffffff;
-    --label-color: #adb5bd;
-    --border-color: #495057;
-    --input-bg-color: #2c2c2c;
-    --result-bg-color: #252525;
-    --shadow-color: rgba(0, 0, 0, 0.2);
-    --utility-btn-bg: #343a40;
-    --utility-btn-text: #e9ecef;
-    --utility-btn-border: #495057;
+    --bg-color: #121212;
+    --container-bg-color: #1e1e1e;
+    --text-color: #e0e0e0;
+    --header-color: #ffffff;
+    --label-color: #adb5bd;
+    --border-color: #495057;
+    --input-bg-color: #2c2c2c;
+    --result-bg-color: #252525;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --utility-btn-bg: #343a40;
+    --utility-btn-text: #e9ecef;
+    --utility-btn-border: #495057;
+
+    /* --- NUEVAS VARIABLES PARA GLASSMORPHISM (MODO OSCURO) --- */
+    --container-bg-glass: rgba(30, 30, 30, 0.6);
+    --border-color-glass: rgba(73, 80, 87, 0.8);
 }
 
+/* --- BODY MODIFICADO --- */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 20px;
-    transition: background-color 0.3s, color 0.3s;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    /* Se añade un gradiente de fondo para que el efecto blur sea visible */
+    background-image: 
+        radial-gradient(at 0% 0%, var(--accent-color) 0px, transparent 50%),
+        radial-gradient(at 98% 98%, rgba(255, 255, 255, 0.2) 0px, transparent 50%);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh; /* Asegura que el gradiente cubra toda la pantalla */
+    transition: background-color 0.3s, color 0.3s;
 }
 
+/* --- CONTAINER MODIFICADO --- */
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: var(--container-bg-color);
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px var(--shadow-color);
-    position: relative;
-    transition: background-color 0.3s;
-    border-top: 4px solid var(--accent-color);
+    max-width: 800px;
+    margin: 0 auto;
+    /* Se usa el nuevo fondo semitransparente */
+    background-color: var(--container-bg-glass);
+    /* Se aplica el filtro de desenfoque */
+    -webkit-backdrop-filter: blur(12px); /* Para compatibilidad con Safari */
+    backdrop-filter: blur(12px);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    position: relative;
+    /* Se añade un borde semitransparente */
+    border: 1px solid var(--border-color-glass);
+    border-top: 4px solid var(--accent-color);
 }
 
 .top-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .control-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .control-group label {
-    font-size: 0.9em;
-    margin-bottom: 0;
-    color: var(--label-color);
+    font-size: 0.9em;
+    margin-bottom: 0;
+    color: var(--label-color);
 }
 
 .control-group select {
-    background-color: var(--input-bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-family: inherit;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: inherit;
 }
 
 h1 {
-    text-align: center;
-    color: var(--header-color);
-    margin-top: 40px;
-    margin-bottom: 40px;
-    font-size: 2.2em;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    text-align: center;
+    color: var(--header-color);
+    margin-top: 40px;
+    margin-bottom: 40px;
+    font-size: 2.2em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .form-section {
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 20px;
-    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .datos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
 }
 
 .pattern-group {
-    margin-bottom: 25px;
-    position: relative;
+    margin-bottom: 25px;
+    position: relative;
 }
 
 label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--label-color);
-    font-size: 0.95em;
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--label-color);
+    font-size: 0.95em;
 }
 
 input,
 textarea,
 select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    box-sizing: border-box;
-    font-size: 0.9em;
-    font-family: inherit;
-    background-color: var(--input-bg-color);
-    color: var(--text-color);
-    transition: all 0.2s ease-in-out;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 0.9em;
+    font-family: inherit;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    transition: all 0.2s ease-in-out;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.3);
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.3);
 }
 
 textarea {
-    min-height: 90px;
-    resize: vertical;
+    min-height: 90px;
+    resize: vertical;
 }
 
 #generate-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 1.1em;
-    font-weight: bold;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 15px rgba(77, 171, 247, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+    width: 100%;
+    padding: 16px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 15px rgba(77, 171, 247, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 #generate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(77, 171, 247, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(77, 171, 247, 0.3);
 }
 
 #generate-btn:disabled {
-    background: #5f6368;
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
+    background: #5f6368;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
 .result-container {
-    margin-top: 40px;
+    margin-top: 40px;
 }
 
 .result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 20px;
 }
 
 h2 {
-    color: var(--header-color);
-    margin: 0;
+    color: var(--header-color);
+    margin: 0;
 }
 
 .utility-btn {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    background-color: var(--utility-btn-bg);
-    color: var(--utility-btn-text);
-    border: 1px solid var(--utility-btn-border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    background-color: var(--utility-btn-bg);
+    color: var(--utility-btn-text);
+    border: 1px solid var(--utility-btn-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .utility-btn:hover {
-    background-color: var(--border-color);
+    background-color: var(--border-color);
 }
 
-/* CORRECCIÓN IMPORTANTE PARA EL SPINNER */
 .hidden {
-    display: none !important;
+    display: none !important;
 }
 
 #result-text {
-    min-height: 250px;
+    min-height: 250px;
 }
 
 #recommendations-text {
-    min-height: 150px;
+    min-height: 150px;
 }
 
 #keywords-text {
-    min-height: 80px;
+    min-height: 80px;
 }
 
 .export-section {
-    margin-top: 30px;
-    text-align: center;
-    border-top: 1px solid var(--border-color);
-    padding-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
+    margin-top: 30px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
 #export-pdf-btn,
 #copy-all-btn {
-    font-weight: bold;
+    font-weight: bold;
 }
 
 .word-counter {
-    position: absolute;
-    bottom: 12px;
-    right: 15px;
-    font-size: 0.75em;
-    color: var(--label-color);
-    background-color: var(--input-bg-color);
-    padding: 2px 6px;
-    border-radius: 4px;
-    opacity: 0.7;
-    pointer-events: none;
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    font-size: 0.75em;
+    color: var(--label-color);
+    background-color: var(--input-bg-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0.7;
+    pointer-events: none;
 }
 
 fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
 }
 
 details {
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    transition: border-color 0.3s;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
 }
 details[open] {
-    padding-bottom: 15px;
+    padding-bottom: 15px;
 }
 summary {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: var(--accent-color);
-    padding: 15px;
-    cursor: pointer;
-    list-style: none; 
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--accent-color);
+    padding: 15px;
+    cursor: pointer;
+    list-style: none; 
 }
 summary::-webkit-details-marker {
-    display: none;
+    display: none;
 }
 summary:hover {
-    background-color: var(--result-bg-color);
-    border-radius: 12px;
+    background-color: var(--result-bg-color);
+    border-radius: 12px;
 }
 details[open] summary {
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 details fieldset {
-    padding: 20px 15px 0 15px;
+    padding: 20px 15px 0 15px;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 .spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
 }
+
