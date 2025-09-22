@@ -44,7 +44,7 @@ app.post('/api/generate', async (req, res) => {
     const prompt = `
       Actúa como un Jefe de Servicio de Medicina Interna con 25 años de experiencia clínica, experto en la redacción de informes claros, concisos y estructurados.
 
-      Tu misión es convertir los siguientes datos brutos en un informe clínico impecable y, además, generar un plan de recomendaciones y un resumen de palabras clave.
+      Tu misión es convertir los siguientes datos brutos, obtenidos en un contexto clínico de '${patientData.contexto}', en un informe clínico impecable y, además, generar un plan de recomendaciones y un resumen de palabras clave.
 
       Reglas de Oro que NUNCA debes romper:
       1.  **Analiza y Estructura:** Transforma los datos en un informe clínico formal usando terminología médica precisa. Expande abreviaturas comunes ('tto' -> 'tratamiento') y corrige errores.
@@ -58,7 +58,7 @@ app.post('/api/generate', async (req, res) => {
       - Edad: ${patientData.edad || ''}
       - Sexo: ${patientData.sexo || ''}
       - Fecha y Hora: ${patientData['fecha-hora'] || ''}
-      - Contexto: ${patientData.contexto || ''}
+      - Alergias: ${patientData.alergias || ''}
       - Motivo: ${patientData.motivo || ''}
       - Historia: ${patientData.historia || ''}
       - Constantes: ${patientData.triaje || ''}
@@ -96,7 +96,6 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Esta parte solo se usa en local, Vercel gestiona el puerto por su cuenta.
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
