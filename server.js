@@ -46,31 +46,27 @@ app.post('/api/generate', async (req, res) => {
 
       Tu misión es convertir los siguientes datos brutos en un informe clínico impecable y, además, generar un plan de recomendaciones y un resumen de palabras clave.
 
-      Sigue estas reglas estrictamente:
-      1.  Analiza y Estructura: Transforma los datos en un informe clínico formal usando terminología médica precisa. Expande abreviaturas comunes ('tto' -> 'tratamiento') y corrige errores.
-      2.  Genera Recomendaciones: Basado en la sospecha diagnóstica y el plan, crea una lista de 2-4 recomendaciones claras para el seguimiento del paciente.
-      3.  Extrae Palabras Clave: Identifica y lista entre 3 y 5 palabras o conceptos clave del caso (ej. 'Dolor torácico', 'SCA', 'Troponinas').
-      4.  Formato de Salida Obligatorio: Debes devolver tu respuesta exclusivamente como un objeto JSON válido, sin texto adicional antes o después. La estructura del JSON debe ser la siguiente:
-          {
-            "informe": "El texto completo del informe clínico aquí...",
-            "recomendaciones": "Las recomendaciones generadas aquí...",
-            "palabrasClave": "Las palabras clave separadas por comas aquí..."
-          }
+      Reglas de Oro que NUNCA debes romper:
+      1.  **Analiza y Estructura:** Transforma los datos en un informe clínico formal usando terminología médica precisa. Expande abreviaturas comunes ('tto' -> 'tratamiento') y corrige errores.
+      2.  **Genera Recomendaciones:** Basado en la sospecha diagnóstica y el plan, crea una lista de 2-4 recomendaciones claras para el seguimiento del paciente.
+      3.  **Extrae Palabras Clave:** Identifica y lista entre 3 y 5 palabras o conceptos clave del caso.
+      4.  **Formato de Salida Obligatorio:** Debes devolver tu respuesta exclusivamente como un objeto JSON válido, sin texto adicional antes o después, con la estructura {"informe": "...", "recomendaciones": "...", "palabrasClave": "..."}.
+      5.  **Regla de Omisión Estricta:** Si un campo de datos de entrada está vacío, es '', 'N/A' o no se especifica, NO incluyas esa sección o titular en el informe final. NO escribas frases como 'No se especifica', 'No se ha establecido' o 'La información es insuficiente'. Simplemente omite la sección por completo.
 
       Aquí están los datos brutos del paciente:
-      - Nombre: ${patientData.nombre || 'No especificado'}
-      - Edad: ${patientData.edad || 'No especificado'}
-      - Sexo: ${patientData.sexo || 'No especificado'}
-      - Fecha y Hora: ${patientData['fecha-hora'] || 'No especificada'}
-      - Contexto: ${patientData.contexto || 'No especificado'}
-      - Motivo: ${patientData.motivo || 'N/A'}
-      - Historia: ${patientData.historia || 'N/A'}
-      - Constantes: ${patientData.triaje || 'N/A'}
-      - Antecedentes: ${patientData.antecedentes || 'N/A'}
-      - Exploración: ${patientData.exploracion || 'N/A'}
-      - Pruebas: ${patientData.pruebas || 'N/A'}
-      - Sospecha: ${patientData.sospecha || 'N/A'}
-      - Plan: ${patientData.plan || 'N/A'}
+      - Nombre: ${patientData.nombre || ''}
+      - Edad: ${patientData.edad || ''}
+      - Sexo: ${patientData.sexo || ''}
+      - Fecha y Hora: ${patientData['fecha-hora'] || ''}
+      - Contexto: ${patientData.contexto || ''}
+      - Motivo: ${patientData.motivo || ''}
+      - Historia: ${patientData.historia || ''}
+      - Constantes: ${patientData.triaje || ''}
+      - Antecedentes: ${patientData.antecedentes || ''}
+      - Exploración: ${patientData.exploracion || ''}
+      - Pruebas: ${patientData.pruebas || ''}
+      - Sospecha: ${patientData.sospecha || ''}
+      - Plan: ${patientData.plan || ''}
     `;
     
     const result = await model.generateContent(prompt);
@@ -79,7 +75,6 @@ app.post('/api/generate', async (req, res) => {
 
     console.log('Respuesta de texto crudo de la IA:', text);
 
-    // Código de limpieza y seguridad para el JSON
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("La IA no devolvió un JSON válido.");
@@ -101,6 +96,7 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
+// Esta parte solo se usa en local, Vercel gestiona el puerto por su cuenta.
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
