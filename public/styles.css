@@ -107,13 +107,6 @@ h1 {
     position: relative;
 }
 
-h3 {
-    color: var(--label-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-top: 30px;
-}
-
 label {
     display: block;
     font-weight: 600;
@@ -163,7 +156,6 @@ textarea {
     margin-top: 20px;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 4px 15px rgba(77, 171, 247, 0.2);
-    /* NUEVO: Estilos para alinear spinner y texto */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -214,8 +206,9 @@ h2 {
     background-color: var(--border-color);
 }
 
+/* CORRECCIÓN IMPORTANTE PARA EL SPINNER */
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 #result-text {
@@ -258,16 +251,12 @@ h2 {
     pointer-events: none;
 }
 
-/* --- ESTILOS ANTIGUOS PARA FIELDSET (LOS ELIMINAMOS O MODIFICAMOS) --- */
 fieldset {
     border: none;
     padding: 0;
     margin: 0;
 }
 
-/* --- NUEVOS ESTILOS PARA LAS MEJORAS DE UX/UI --- */
-
-/* 1. Estilos para Secciones Colapsables */
 details {
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -283,10 +272,10 @@ summary {
     color: var(--accent-color);
     padding: 15px;
     cursor: pointer;
-    list-style: none; /* Oculta la flecha por defecto en algunos navegadores */
+    list-style: none; 
 }
 summary::-webkit-details-marker {
-    display: none; /* Oculta la flecha por defecto en Chrome/Safari */
+    display: none;
 }
 summary:hover {
     background-color: var(--result-bg-color);
@@ -299,7 +288,6 @@ details fieldset {
     padding: 20px 15px 0 15px;
 }
 
-/* 2. Estilos para el Spinner de Carga */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

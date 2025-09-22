@@ -20,17 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
         copyReportBtn: document.getElementById('copy-report-btn'),
         copyRecsBtn: document.getElementById('copy-recs-btn'),
         copyKeywordsBtn: document.getElementById('copy-keywords-btn'),
-        // NUEVO: Referencias para el spinner y el texto del botón
         spinner: document.getElementById('spinner'),
         btnText: document.getElementById('btn-text'),
     };
 
     const WordCounterManager = {
         init() {
-            document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
+            document.querySelectorAll('.pattern-group textarea, .datos-grid textarea').forEach(textarea => {
                 const counter = document.createElement('span');
                 counter.className = 'word-counter';
-                textarea.insertAdjacentElement('afterend', counter);
+                textarea.parentElement.appendChild(counter);
                 textarea.addEventListener('input', () => this.update(textarea, counter));
                 this.update(textarea, counter);
             });
@@ -41,10 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
             counter.textContent = `${wordCount} ${wordCount === 1 ? 'palabra' : 'palabras'}`;
         },
         updateAllVisible() {
-            document.querySelectorAll('.pattern-group textarea').forEach(textarea => {
+            document.querySelectorAll('.pattern-group textarea, .datos-grid textarea').forEach(textarea => {
                 if (textarea.offsetParent !== null) {
-                    const counter = textarea.nextElementSibling;
-                    if (counter && counter.classList.contains('word-counter')) {
+                    const counter = textarea.parentElement.querySelector('.word-counter');
+                    if (counter) {
                         this.update(textarea, counter);
                     }
                 }
@@ -59,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.clearBtn.addEventListener('click', this.clear.bind(this));
             DOMElements.sexoSelector.addEventListener('change', this.toggleEmbarazoField.bind(this));
             this.toggleFields();
-            this.setInitialDateTime(); // Llamada inicial para establecer la fecha/hora
+            this.setInitialDateTime(); 
         },
         saveState() {
             const contexto = DOMElements.contextoSelector.value;
@@ -111,9 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.embarazoContainer.classList.toggle('hidden', !isWoman);
         },
         setInitialDateTime() {
-            // Función mejorada para establecer fecha/hora en inputs datetime-local
             const now = new Date();
-            // Restamos la diferencia horaria para que el input muestre la hora local correcta
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const formattedDateTime = now.toISOString().slice(0, 16);
 
@@ -157,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, 'Palabras clave copiadas'));
         },
         async generateNote() {
-            // LÓGICA DEL SPINNER AÑADIDA
             DOMElements.generateBtn.disabled = true;
             DOMElements.spinner.classList.remove('hidden');
             DOMElements.btnText.textContent = "Generando...";
@@ -168,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
                 if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
-                    const key = field.id; // Enviamos la key con prefijo
+                    const key = field.id; 
                     incomingData[key] = field.value;
                 }
             });
@@ -197,16 +193,80 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 DOMElements.resultText.value = `Error: ${error.message}`;
             } finally {
-                // LÓGICA DEL SPINNER AÑADIDA
                 DOMElements.generateBtn.disabled = false;
                 DOMElements.spinner.classList.add('hidden');
                 DOMElements.btnText.textContent = "Generar Texto";
             }
         },
+        // FUNCIÓN DE EXPORTAR A PDF COMPLETA Y CORREGIDA
         exportToPDF() {
-            // ... (código de exportar a PDF sin cambios)
+            const reportText = DOMElements.resultText.value;
+            if (!reportText.trim()) {
+                this.copyToClipboard('', 'No hay informe generado para exportar.');
+                return;
+            }
+
+            const contexto = DOMElements.contextoSelector.value;
+            let nombre = 'N/A', edad = 'N/A';
+            
+            const activeForm = DOMElements.formSections[contexto];
+            if(activeForm) {
+                const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
+                const edadEl = activeForm.querySelector('input[id*="-edad"]');
+                if(nombreEl) nombre = nombreEl.value || 'N/A';
+                if(edadEl) edad = edadEl.value || 'N/A';
+            }
+
+            const fechaEl = document.getElementById(`${contexto}-fecha-hora`);
+            const fecha = fechaEl && fechaEl.value ? new Date(fechaEl.value).toLocaleString('es-ES') : new Date().toLocaleString('es-ES');
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("Inter", "normal");
+            let y = 20;
+
+            doc.setFontSize(18);
+            doc.text("Informe Clínico - Axiom Note", 105, y, { align: "center" });
+            y += 15;
+            
+            doc.setFontSize(12);
+            doc.text(`Paciente: ${nombre}`, 15, y);
+            doc.text(`Edad: ${edad}`, 15, y + 7);
+            doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
+            y += 28;
+            
+            doc.setLineWidth(0.5);
+            doc.line(15, y, 195, y);
+            y += 10;
+
+            const addSection = (title, textContent) => {
+                if (!textContent || !textContent.trim()) return;
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text(title, 15, y);
+                y += 8;
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                const splitText = doc.splitTextToSize(textContent, 180);
+                
+                splitText.forEach(line => {
+                    if (y > 280) { 
+                        doc.addPage(); 
+                        y = 20; 
+                    }
+                    doc.text(line, 15, y);
+                    y += 7;
+                });
+                y += 10;
+            };
+
+            addSection("Nota de Evolución", DOMElements.resultText.value);
+            addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
+            addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+            
+            const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
+            doc.save(fileName);
         },
-        // FUNCIÓN DE COPIAR MODIFICADA PARA USAR NOTIFICACIONES TOAST
         copyToClipboard(text, message) {
             if (!text || !text.trim()) {
                 Toastify({
@@ -233,12 +293,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
         copyFullReport() {
-            // ... (código de copiar todo el informe sin cambios, ahora usará el nuevo copyToClipboard)
             const report = DOMElements.resultText.value;
             const recs = DOMElements.recommendationsText.value;
             const keywords = DOMElements.keywordsText.value;
             if (!report && !recs && !keywords) {
-                 this.copyToClipboard('', 'No hay nada que copiar'); // Usamos la nueva función
+                 this.copyToClipboard('', 'No hay nada que copiar');
                  return;
             }
             let fullText = "";
