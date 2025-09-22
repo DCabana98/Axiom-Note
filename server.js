@@ -75,12 +75,14 @@ app.post('/api/generate', async (req, res) => {
 
     console.log('Respuesta de texto crudo de la IA:', text);
 
+    // --- CÓDIGO DE LIMPIEZA Y SEGURIDAD PARA EL JSON ---
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("La IA no devolvió un JSON válido.");
     }
     const jsonString = match[0];
     const structuredResponse = JSON.parse(jsonString);
+    // ---------------------------------------------
     
     console.log('✅ Respuesta JSON parseada con éxito.');
 
