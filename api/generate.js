@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: ÚNICA MODIFICACIÓN (CAPA DE SEGURIDAD) ---
+    // --- INICIO: CAPA DE SEGURIDAD ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -15,7 +15,7 @@ export default async (req, res) => {
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: ÚNICA MODIFICACIÓN ---
+    // --- FIN: CAPA DE SEGURIDAD ---
 
     const apiKey = process.env.GOOGLE_API_KEY;
 
@@ -82,7 +82,6 @@ ${JSON.stringify(incomingData, null, 2)}
 `;
         break;
 
-      // --- INICIO: BLOQUE 'EVOLUTIVO' MODIFICADO ---
       case 'evolutivo':
         const resumen = incomingData['evo-resumen'] || 'No reportado.';
         const cambios = incomingData['evo-cambios'] || 'No reportado.';
@@ -105,7 +104,6 @@ ${reglaDeFormato}
 ---
 `;
         break;
-      // --- FIN: BLOQUE 'EVOLUTIVO' MODIFICADO ---
 
       default:
         masterPrompt = "Contexto no reconocido.";
