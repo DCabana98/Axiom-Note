@@ -4,21 +4,18 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE VALIDACIÓN DE SEGURIDAD ---
-    // 1. Verificamos que los datos de entrada existen y son un objeto.
+    // --- INICIO: ÚNICA MODIFICACIÓN (CAPA DE SEGURIDAD) ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
 
-    // 2. Verificamos que el 'contexto' es uno de los valores permitidos.
     const { contexto } = incomingData;
     const contextosValidos = ['urgencias', 'planta', 'evolutivo'];
 
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: CAPA DE VALIDACIÓN DE SEGURIDAD ---
-
+    // --- FIN: ÚNICA MODIFICACIÓN ---
 
     const apiKey = process.env.GOOGLE_API_KEY;
 
@@ -49,6 +46,7 @@ Debes generar 3 bloques de texto separados.
 Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
 Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
 `;
+
 
     switch (contexto) {
       case 'urgencias':
@@ -98,8 +96,6 @@ ${JSON.stringify(incomingData, null, 2)}
         break;
 
       default:
-        // Esta opción ahora es redundante gracias a la validación de arriba,
-        // pero la mantenemos como una capa extra de seguridad.
         masterPrompt = "Contexto no reconocido.";
     }
     
@@ -109,18 +105,12 @@ ${JSON.stringify(incomingData, null, 2)}
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
     if (!googleResponse.ok) {
-      const errorText = await googleResponse.text();
-      console.error("Error de la API de Google:", errorText);
+      const errorData = await googleResponse.json();
       res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
       return;
     }
 
     const data = await googleResponse.json();
-    
-    if (!data.candidates || data.candidates.length === 0) {
-        throw new Error("La respuesta de la API no contiene candidatos válidos.");
-    }
-
     const fullText = data.candidates[0].content.parts[0].text;
 
     const parts = fullText.split('---SEPARADOR---');
