@@ -163,6 +163,11 @@ textarea {
     margin-top: 20px;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 4px 15px rgba(77, 171, 247, 0.2);
+    /* NUEVO: Estilos para alinear spinner y texto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 #generate-btn:hover {
@@ -253,24 +258,58 @@ h2 {
     pointer-events: none;
 }
 
-/* --- NUEVOS ESTILOS PARA LA AGRUPACIÓN VISUAL --- */
-
+/* --- ESTILOS ANTIGUOS PARA FIELDSET (LOS ELIMINAMOS O MODIFICAMOS) --- */
 fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* --- NUEVOS ESTILOS PARA LAS MEJORAS DE UX/UI --- */
+
+/* 1. Estilos para Secciones Colapsables */
+details {
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 25px;
-    margin: 30px 0;
+    margin-bottom: 20px;
     transition: border-color 0.3s;
 }
-
-fieldset:first-of-type {
-    margin-top: 10px;
+details[open] {
+    padding-bottom: 15px;
 }
-
-legend {
+summary {
     font-size: 1.1em;
     font-weight: 600;
     color: var(--accent-color);
-    padding: 0 10px;
-    margin-left: 10px; /* Alinea la leyenda con el relleno del fieldset */
+    padding: 15px;
+    cursor: pointer;
+    list-style: none; /* Oculta la flecha por defecto en algunos navegadores */
+}
+summary::-webkit-details-marker {
+    display: none; /* Oculta la flecha por defecto en Chrome/Safari */
+}
+summary:hover {
+    background-color: var(--result-bg-color);
+    border-radius: 12px;
+}
+details[open] summary {
+    border-bottom: 1px solid var(--border-color);
+}
+details fieldset {
+    padding: 20px 15px 0 15px;
+}
+
+/* 2. Estilos para el Spinner de Carga */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
 }

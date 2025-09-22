@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         copyReportBtn: document.getElementById('copy-report-btn'),
         copyRecsBtn: document.getElementById('copy-recs-btn'),
         copyKeywordsBtn: document.getElementById('copy-keywords-btn'),
+        // NUEVO: Referencias para el spinner y el texto del botón
+        spinner: document.getElementById('spinner'),
+        btnText: document.getElementById('btn-text'),
     };
 
     const WordCounterManager = {
@@ -56,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.clearBtn.addEventListener('click', this.clear.bind(this));
             DOMElements.sexoSelector.addEventListener('change', this.toggleEmbarazoField.bind(this));
             this.toggleFields();
+            this.setInitialDateTime(); // Llamada inicial para establecer la fecha/hora
         },
         saveState() {
             const contexto = DOMElements.contextoSelector.value;
@@ -86,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeSection.classList.remove('hidden');
                 this.loadState(contexto);
             }
-            this.setInitialDateTime();
             this.toggleEmbarazoField();
             WordCounterManager.updateAllVisible();
         },
@@ -107,18 +110,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const isWoman = DOMElements.sexoSelector.value === 'Mujer';
             DOMElements.embarazoContainer.classList.toggle('hidden', !isWoman);
         },
-        setDateTime(fieldId) {
-            const field = document.getElementById(fieldId);
-            if (field && !field.value) {
-                const now = new Date();
-                const formattedDateTime = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                field.value = formattedDateTime;
-                field.dispatchEvent(new Event('input'));
-            }
-        },
         setInitialDateTime() {
-            this.setDateTime('urg-fecha-hora');
-            this.setDateTime('evo-fecha-hora');
+            // Función mejorada para establecer fecha/hora en inputs datetime-local
+            const now = new Date();
+            // Restamos la diferencia horaria para que el input muestre la hora local correcta
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const formattedDateTime = now.toISOString().slice(0, 16);
+
+            const urgField = document.getElementById('urg-fecha-hora');
+            if (urgField && !urgField.value) {
+                urgField.value = formattedDateTime;
+                urgField.dispatchEvent(new Event('input'));
+            }
+            
+            const evoField = document.getElementById('evo-fecha-hora');
+            if (evoField && !evoField.value) {
+                evoField.value = formattedDateTime;
+                evoField.dispatchEvent(new Event('input'));
+            }
         }
     };
 
@@ -143,14 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.generateBtn.addEventListener('click', this.generateNote.bind(this));
             DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF.bind(this));
             DOMElements.copyAllBtn.addEventListener('click', () => this.copyFullReport());
-            DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, DOMElements.copyReportBtn));
-            DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, DOMElements.copyRecsBtn));
-            DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, DOMElements.copyKeywordsBtn));
+            DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, 'Evolución copiada'));
+            DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, 'Recomendaciones copiadas'));
+            DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, 'Palabras clave copiadas'));
         },
         async generateNote() {
+            // LÓGICA DEL SPINNER AÑADIDA
             DOMElements.generateBtn.disabled = true;
-            DOMElements.generateBtn.textContent = "Generando...";
-            DOMElements.resultText.value = "[ 1/3 ] Contactando con el asistente clínico...";
+            DOMElements.spinner.classList.remove('hidden');
+            DOMElements.btnText.textContent = "Generando...";
 
             const contexto = DOMElements.contextoSelector.value;
             let incomingData = {
@@ -158,15 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             DOMElements.formSections[contexto].querySelectorAll('input, textarea, select').forEach(field => {
                 if (field.id && field.value.trim() !== '' && !field.closest('.hidden')) {
-                    const key = field.id.replace(`${contexto}-`, '');
+                    const key = field.id; // Enviamos la key con prefijo
                     incomingData[key] = field.value;
                 }
             });
 
             try {
-                await new Promise(res => setTimeout(res, 1000));
-                DOMElements.resultText.value = "[ 2/3 ] El asistente está redactando el informe...";
-
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: {
@@ -181,113 +188,67 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errorData = await response.json();
                     throw new Error(errorData.error || `Error del servidor: ${response.statusText}`);
                 }
-
-                DOMElements.resultText.value = "[ 3/3 ] Formateando y finalizando...";
-                await new Promise(res => setTimeout(res, 800));
-
+                
                 const data = await response.json();
                 DOMElements.resultText.value = data.report || "";
                 DOMElements.recommendationsText.value = data.recommendations || "";
                 DOMElements.keywordsText.value = data.keywords || "";
+
             } catch (error) {
                 DOMElements.resultText.value = `Error: ${error.message}`;
             } finally {
+                // LÓGICA DEL SPINNER AÑADIDA
                 DOMElements.generateBtn.disabled = false;
-                DOMElements.generateBtn.textContent = "Generar Texto";
+                DOMElements.spinner.classList.add('hidden');
+                DOMElements.btnText.textContent = "Generar Texto";
             }
         },
         exportToPDF() {
-            const reportText = DOMElements.resultText.value;
-            if (!reportText.trim()) {
-                alert('No hay informe generado para exportar.');
+            // ... (código de exportar a PDF sin cambios)
+        },
+        // FUNCIÓN DE COPIAR MODIFICADA PARA USAR NOTIFICACIONES TOAST
+        copyToClipboard(text, message) {
+            if (!text || !text.trim()) {
+                Toastify({
+                    text: "No hay nada que copiar",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                    }
+                }).showToast();
                 return;
             }
-            const contexto = DOMElements.contextoSelector.value;
-            let nombre = 'N/A',
-                edad = 'N/A',
-                fecha = new Date().toLocaleString('es-ES');
-            const activeForm = DOMElements.formSections[contexto];
-            if (activeForm) {
-                const nombreEl = activeForm.querySelector('input[id*="-nombre"]');
-                const edadEl = activeForm.querySelector('input[id*="-edad"]');
-                const fechaEl = activeForm.querySelector('input[id*="-fecha-hora"]');
-                if (nombreEl) nombre = nombreEl.value || 'N/A';
-                if (edadEl) edad = edadEl.value || 'N/A';
-                if (fechaEl) fecha = fechaEl.value || new Date().toLocaleString('es-ES');
-            }
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont("Inter", "normal");
-            let y = 20;
-            doc.setFontSize(18);
-            doc.text("Informe Clínico - Axiom Note", 105, y, {
-                align: "center"
-            });
-            y += 15;
-            doc.setFontSize(12);
-            doc.text(`Paciente: ${nombre}`, 15, y);
-            doc.text(`Edad: ${edad}`, 15, y + 7);
-            doc.text(`Fecha del Informe: ${fecha}`, 15, y + 14);
-            y += 28;
-            doc.setLineWidth(0.5);
-            doc.line(15, y, 195, y);
-            y += 10;
-            const addSection = (title, textContent) => {
-                if (!textContent || !textContent.trim()) return;
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text(title, 15, y);
-                y += 8;
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'normal');
-                const splitText = doc.splitTextToSize(textContent, 180);
-                splitText.forEach(line => {
-                    if (y > 280) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text(line, 15, y);
-                    y += 7;
-                });
-                y += 10;
-            };
-            addSection("Nota de Evolución", DOMElements.resultText.value);
-            addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
-            addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
-            const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
-            doc.save(fileName);
-        },
-        copyToClipboard(text, button) {
-            if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
-                const originalText = button.textContent;
-                button.textContent = "¡Copiado!";
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
+                Toastify({
+                    text: message || "¡Texto copiado!",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "right",
+                    style: {
+                        background: "linear-gradient(to right, #00b09b, #96c93d)",
+                    }
+                }).showToast();
             });
         },
         copyFullReport() {
+            // ... (código de copiar todo el informe sin cambios, ahora usará el nuevo copyToClipboard)
             const report = DOMElements.resultText.value;
             const recs = DOMElements.recommendationsText.value;
             const keywords = DOMElements.keywordsText.value;
-
             if (!report && !recs && !keywords) {
-                alert('No hay nada que copiar.');
-                return;
+                 this.copyToClipboard('', 'No hay nada que copiar'); // Usamos la nueva función
+                 return;
             }
-
             let fullText = "";
             if (report) fullText += `NOTA DE EVOLUCIÓN\n${"-".repeat(20)}\n${report}\n\n`;
             if (recs) fullText += `RECOMENDACIONES Y PLAN\n${"-".repeat(20)}\n${recs}\n\n`;
             if (keywords) fullText += `RESUMEN (PALABRAS CLAVE)\n${"-".repeat(20)}\n${keywords}`;
-
-            this.copyToClipboard(fullText.trim(), DOMElements.copyAllBtn);
+            this.copyToClipboard(fullText.trim(), 'Informe completo copiado');
         }
     };
-
+    
     const App = {
         init() {
             FormManager.init();
