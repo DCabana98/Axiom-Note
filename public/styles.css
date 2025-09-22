@@ -252,3 +252,25 @@ h2 {
     opacity: 0.7;
     pointer-events: none;
 }
+
+/* --- NUEVOS ESTILOS PARA LA AGRUPACIÓN VISUAL --- */
+
+fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 30px 0;
+    transition: border-color 0.3s;
+}
+
+fieldset:first-of-type {
+    margin-top: 10px;
+}
+
+legend {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--accent-color);
+    padding: 0 10px;
+    margin-left: 10px; /* Alinea la leyenda con el relleno del fieldset */
+}
