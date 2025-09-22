@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE SEGURIDAD ---
+    // --- INICIO: ÚNICA MODIFICACIÓN (CAPA DE SEGURIDAD) ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -15,7 +15,7 @@ export default async (req, res) => {
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: CAPA DE SEGURIDAD ---
+    // --- FIN: ÚNICA MODIFICACIÓN ---
 
     const apiKey = process.env.GOOGLE_API_KEY;
 
@@ -83,24 +83,14 @@ ${JSON.stringify(incomingData, null, 2)}
         break;
 
       case 'evolutivo':
-        const resumen = incomingData['evo-resumen'] || 'No reportado.';
-        const cambios = incomingData['evo-cambios'] || 'No reportado.';
-        const plan = incomingData['evo-plan'] || 'No reportado.';
-
         masterPrompt = `
-Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido y coherente.
+Actúa como un médico de planta redactando una nota de evolución concisa y profesional. Transforma los siguientes puntos en un párrafo narrativo.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-
-**Integra la siguiente información en una única nota de evolución fluida:**
-
-* **Estado General del Paciente:** ${resumen}
-* **Eventos Relevantes:** ${cambios}
-* **Plan a Seguir:** ${plan}
-
+A continuación se presentan los datos para generar el EVOLUTIVO DE PLANTA en español:
 ---
-**Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
+${JSON.stringify(incomingData, null, 2)}
 ---
 `;
         break;
