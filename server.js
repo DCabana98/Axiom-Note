@@ -58,6 +58,12 @@ app.post('/api/generate', async (req, res) => {
           }
 
       Aquí están los datos brutos del paciente:
+      // --- LÍNEAS CORREGIDAS Y AÑADIDAS ---
+      - Nombre: ${patientData.nombre || 'No especificado'}
+      - Edad: ${patientData.edad || 'No especificado'}
+      - Sexo: ${patientData.sexo || 'No especificado'}
+      - Fecha y Hora: ${patientData['fecha-hora'] || 'No especificada'}
+      // ------------------------------------
       - Contexto: ${patientData.contexto || 'No especificado'}
       - Motivo: ${patientData.motivo || 'N/A'}
       - Historia: ${patientData.historia || 'N/A'}
@@ -75,7 +81,6 @@ app.post('/api/generate', async (req, res) => {
 
     console.log('Respuesta de texto crudo de la IA:', text);
 
-    // Código de limpieza y seguridad para el JSON
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) {
       throw new Error("La IA no devolvió un JSON válido.");
@@ -96,11 +101,3 @@ app.post('/api/generate', async (req, res) => {
     res.status(500).json({ error: "Error interno al generar el informe." });
   }
 });
-
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
-  });
-}
-
-export default app;
