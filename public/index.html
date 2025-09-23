@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Axiom Note - v5.4</title>
+    <title>Axiom Note</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="container">
@@ -37,6 +35,7 @@
             </div>
             
             <div id="urgencias-fields" class="hidden">
+                <!-- SECCIÓN DE URGENCIAS (SIN CAMBIOS) -->
                 <details open>
                     <summary>Datos del Paciente</summary>
                     <fieldset>
@@ -71,6 +70,7 @@
             </div>
 
             <div id="planta-fields" class="hidden">
+                <!-- SECCIÓN DE INGRESO EN PLANTA (SIN CAMBIOS) -->
                 <details open>
                     <summary>Información del Paciente</summary>
                     <fieldset>
@@ -106,6 +106,7 @@
                 </details>
             </div>
 
+            <!-- INICIO SECCIÓN EVOLUTIVO MODIFICADA (FORMATO SOAP) -->
             <div id="evolutivo-fields" class="hidden">
                 <details open>
                     <summary>Nota de Evolutivo (Formato SOAP)</summary>
@@ -129,6 +130,8 @@
                     </fieldset>
                 </details>
             </div>
+            <!-- FIN SECCIÓN EVOLUTIVO MODIFICADA -->
+
             <button type="button" id="generate-btn">
                 <span id="spinner" class="spinner hidden"></span>
                 <span id="btn-text">Generar Texto</span>
@@ -154,6 +157,6 @@
     </div>
     
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="app.js"></script>
+    <script src="/app.js"></script>
 </body>
 </html>

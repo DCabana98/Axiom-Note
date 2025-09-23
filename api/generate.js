@@ -93,6 +93,7 @@ ${JSON.stringify(incomingData, null, 2)}
         masterPrompt = `
 Actúa como un médico de planta que redacta una NOTA DE EVOLUCIÓN concisa y profesional en formato SOAP.
 Tu tarea es tomar los siguientes datos y redactar cada sección de forma narrativa, profesional y fluida en español.
+El informe principal debe ser un único párrafo que integre la información de las 3 secciones (S/O, A y P).
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
