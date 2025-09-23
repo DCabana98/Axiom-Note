@@ -35,7 +35,6 @@
             </div>
             
             <div id="urgencias-fields" class="hidden">
-                <!-- SECCIÓN DE URGENCIAS (SIN CAMBIOS) -->
                 <details open>
                     <summary>Datos del Paciente</summary>
                     <fieldset>
@@ -70,7 +69,6 @@
             </div>
 
             <div id="planta-fields" class="hidden">
-                <!-- SECCIÓN DE INGRESO EN PLANTA (SIN CAMBIOS) -->
                 <details open>
                     <summary>Información del Paciente</summary>
                     <fieldset>
@@ -106,7 +104,6 @@
                 </details>
             </div>
 
-            <!-- INICIO SECCIÓN EVOLUTIVO MODIFICADA (FORMATO SOAP) -->
             <div id="evolutivo-fields" class="hidden">
                 <details open>
                     <summary>Nota de Evolutivo (Formato SOAP)</summary>
@@ -130,27 +127,23 @@
                     </fieldset>
                 </details>
             </div>
-            <!-- FIN SECCIÓN EVOLUTIVO MODIFICADA -->
-
             <button type="button" id="generate-btn">
                 <span id="spinner" class="spinner hidden"></span>
                 <span id="btn-text">Generar Texto</span>
             </button>
 
             <div class="result-container">
-                <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
+                <div class="result-header">
+                    <h2>Nota de Evolución</h2>
+                    <button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button>
+                </div>
                 <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
-                <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
-                <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
-                <div class="result-header"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
-                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
                 
                 <div class="export-section">
-                    <button type="button" id="copy-all-btn" class="utility-btn">Copiar Informe Completo</button>
                     <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
                 </div>
             </div>
-               <div style="margin-top: 20px; text-align: right;">
+            <div style="margin-top: 20px; text-align: right;">
                     <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
                </div>
         </form>
@@ -160,3 +153,193 @@
     <script src="/app.js"></script>
 </body>
 </html>
+```eof
+```javascript:api/generate.js
+import fetch from 'node-fetch';
+
+export default async (req, res) => {
+  try {
+    const { incomingData } = req.body;
+
+    // --- INICIO: CAPA DE SEGURIDAD ---
+    if (!incomingData || typeof incomingData !== 'object') {
+      return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
+    }
+    const { contexto } = incomingData;
+    // Ahora 'evolutivo' es el único contexto que genera un informe simplificado
+    const contextosValidos = ['urgencias', 'planta', 'evolutivo'];
+    if (!contexto || !contextosValidos.includes(contexto)) {
+      return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
+    }
+    // --- FIN: CAPA DE SEGURIDAD ---
+
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
+    }
+
+    let masterPrompt;
+    
+    // --- INICIO: REGLAS DE IA (MODIFICADAS) ---
+    const reglaDeOro = `
+NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. 
+Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. 
+Es preferible un informe corto y preciso que uno largo e inventado.
+`;
+
+    const reglaDeEstilo = `
+REGLAS DE ESTILO Y TONO:
+1.  LENGUAJE PROFESIONAL: redacta el informe en estilo narrativo y fluido, como un médico experimentado. 
+2.  EFICIENCIA: usa abreviaturas médicas comunes cuando corresponda (ej: BEG, ACR, tto, AP, IQ).
+3.  OBJETIVIDAD: limita el informe estrictamente a la información proporcionada.
+4.  FORMATO LIMPIO: no uses formato Markdown ni símbolos especiales. Solo texto plano.
+`;
+
+    // --- Esta regla ahora es mucho más simple ---
+    const reglaDeFormatoSimple = `
+INSTRUCCIÓN FINAL:
+Debes generar un único bloque de texto que sea el informe principal.
+No incluyas separadores ni palabras clave. Solo el informe.
+`;
+    // --- FIN: REGLAS DE IA ---
+
+    switch (contexto) {
+      // Los casos 'urgencias' y 'planta' siguen funcionando como antes, con los 3 bloques de texto
+      case 'urgencias':
+        // (código de urgencias sin cambios...)
+        const reglaDeFormatoCompleja = `
+INSTRUCCIÓN FINAL:
+Debes generar SIEMPRE 3 bloques de texto separados:
+1. Informe principal.
+2. Recomendaciones y plan a seguir.
+3. Una lista de 5 a 7 palabras clave.
+Separa el informe principal de las recomendaciones con:
+---SEPARADOR---
+Después de las recomendaciones, añade otra línea que contenga:
+---KEYWORDS---
+`;
+        masterPrompt = `
+Actúa como un médico de urgencias senior. 
+Transforma las siguientes notas en un informe narrativo y profesional en español.
+${reglaDeOro}
+${reglaDeEstilo}
+${reglaDeFormatoCompleja}
+Datos para el informe de URGENCIAS:
+---
+${JSON.stringify(incomingData, null, 2)}
+---`;
+        break;
+
+      case 'planta':
+        // (código de planta sin cambios...)
+        const reglaDeFormatoComplejaPlanta = `
+INSTRUCCIÓN FINAL:
+Debes generar SIEMPRE 3 bloques de texto separados:
+1. Informe principal.
+2. Recomendaciones y plan a seguir.
+3. Una lista de 5 a 7 palabras clave.
+Separa el informe principal de las recomendaciones con:
+---SEPARADOR---
+Después de las recomendaciones, añade otra línea que contenga:
+---KEYWORDS---
+`;
+        masterPrompt = `
+Actúa como un médico internista experimentado redactando un informe de ingreso en planta. 
+Crea un documento completo y estructurado en español.
+${reglaDeOro}
+${reglaDeEstilo}
+${reglaDeFormatoComplejaPlanta}
+Datos para el informe de INGRESO EN PLANTA:
+---
+${JSON.stringify(incomingData, null, 2)}
+---`;
+        break;
+
+      // --- INICIO: CASO EVOLUTIVO (AHORA SIMPLIFICADO) ---
+      case 'evolutivo':
+        const subjetivoObjetivo = incomingData['evo-subjetivo-objetivo'] || 'Sin datos.';
+        const analisis = incomingData['evo-analisis'] || 'Sin datos.';
+        const plan = incomingData['evo-plan'] || 'Sin datos.';
+
+        masterPrompt = `
+Actúa como un médico de planta que redacta una NOTA DE EVOLUCIÓN concisa y profesional.
+Tu tarea es tomar los siguientes datos del formato SOAP y redactar un único párrafo narrativo, profesional y fluido en español que los integre.
+${reglaDeOro}
+${reglaDeEstilo}
+${reglaDeFormatoSimple}
+
+Datos para integrar:
+S/O (Datos Subjetivos y Objetivos): ${subjetivoObjetivo}
+A (Análisis de la Evolución): ${analisis}
+P (Plan a Seguir): ${plan}
+`;
+        break;
+      // --- FIN: CASO EVOLUTIVO ---
+
+      default:
+        masterPrompt = "Contexto no reconocido.";
+    }
+
+    const modelName = "gemini-1.5-pro-latest";
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+    const generationConfig = { temperature: 0.2 };
+
+    const requestBody = { 
+      contents: [{ parts: [{ text: masterPrompt }] }],
+      generationConfig
+    };
+
+    const googleResponse = await fetch(apiUrl, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(requestBody) 
+    });
+
+    if (!googleResponse.ok) {
+      const errorData = await googleResponse.json();
+      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}`, details: errorData });
+      return;
+    }
+
+    const data = await googleResponse.json();
+    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // --- INICIO: PARSING DE RESPUESTA (MODIFICADO) ---
+    let reportPart, recommendationsPart, keywordsPart;
+
+    if (contexto === 'evolutivo') {
+        // Para el evolutivo, toda la respuesta es el informe.
+        reportPart = fullText.trim() || "No se pudo generar el informe.";
+        recommendationsPart = ""; // Vaciamos los otros campos
+        keywordsPart = "";
+    } else {
+        // Para los otros contextos, mantenemos el parsing complejo
+        const parts = fullText.split('---SEPARADOR---');
+        reportPart = parts[0]?.trim() || "No se pudo generar el informe.";
+        const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
+        recommendationsPart = recommendationsAndKeywords[0]?.trim() || "";
+        keywordsPart = recommendationsAndKeywords[1]?.trim() || "";
+    }
+    // --- FIN: PARSING DE RESPUESTA ---
+
+    res.status(200).json({ 
+      report: reportPart,
+      recommendations: recommendationsPart,
+      keywords: keywordsPart
+    });
+
+  } catch (error) {
+    console.error("Error en la función del servidor:", error);
+    res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
+  }
+};
+```eof
+
+### Próximos Pasos
+
+1.  **Reemplaza el Código**: Copia el contenido de estos dos archivos en tus archivos locales `public/index.html` y `api/generate.js`.
+2.  **Sube a GitHub**: Guarda los cambios y súbelos a GitHub (`git add .`, `git commit -m "Simplificación del evolutivo"`, `git push`).
+3.  **Prueba**: Una vez desplegado en Vercel, prueba de nuevo la sección "Evolutivo de planta".
+
+Este enfoque es mucho más directo y tiene una probabilidad de éxito mucho mayor. Al darle a la IA una sola tarea bien definida para el evolutivo, los resultados deberían ser consistentes y correctos.
