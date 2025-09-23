@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
         clearBtn: document.getElementById('clear-btn'),
         generateBtn: document.getElementById('generate-btn'),
         exportPdfBtn: document.getElementById('export-pdf-btn'),
-        copyAllBtn: document.getElementById('copy-all-btn'),
+        // El botón copy-all-btn puede no existir en la versión simplificada, lo manejaremos con cuidado
+        copyAllBtn: document.getElementById('copy-all-btn'), 
         embarazoContainer: document.getElementById('urg-embarazo-container'),
         sexoSelector: document.getElementById('urg-sexo'),
         resultText: document.getElementById('result-text'),
+        // Estos elementos pueden no existir en la versión simplificada, el código los comprobará
         recommendationsText: document.getElementById('recommendations-text'),
         keywordsText: document.getElementById('keywords-text'),
         copyReportBtn: document.getElementById('copy-report-btn'),
@@ -56,7 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.contextoSelector.addEventListener('change', this.toggleFields.bind(this));
             DOMElements.allFormInputs.forEach(input => input.addEventListener('input', this.saveState.bind(this)));
             DOMElements.clearBtn.addEventListener('click', this.clear.bind(this));
-            DOMElements.sexoSelector.addEventListener('change', this.toggleEmbarazoField.bind(this));
+            if (DOMElements.sexoSelector) {
+                 DOMElements.sexoSelector.addEventListener('change', this.toggleEmbarazoField.bind(this));
+            }
             this.toggleFields();
             this.setInitialDateTime(); 
         },
@@ -106,8 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
             WordCounterManager.updateAllVisible();
         },
         toggleEmbarazoField() {
-            const isWoman = DOMElements.sexoSelector.value === 'Mujer';
-            DOMElements.embarazoContainer.classList.toggle('hidden', !isWoman);
+            if (DOMElements.sexoSelector && DOMElements.embarazoContainer) {
+                const isWoman = DOMElements.sexoSelector.value === 'Mujer';
+                DOMElements.embarazoContainer.classList.toggle('hidden', !isWoman);
+            }
         },
         setInitialDateTime() {
             const now = new Date();
@@ -148,10 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
         init() {
             DOMElements.generateBtn.addEventListener('click', this.generateNote.bind(this));
             DOMElements.exportPdfBtn.addEventListener('click', this.exportToPDF.bind(this));
-            DOMElements.copyAllBtn.addEventListener('click', () => this.copyFullReport());
-            DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, 'Evolución copiada'));
-            DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, 'Recomendaciones copiadas'));
-            DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, 'Palabras clave copiadas'));
+            
+            // Añadimos comprobaciones para los botones que pueden no existir
+            if (DOMElements.copyAllBtn) {
+                DOMElements.copyAllBtn.addEventListener('click', () => this.copyFullReport());
+            }
+            if (DOMElements.copyReportBtn) {
+                DOMElements.copyReportBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.resultText.value, 'Evolución copiada'));
+            }
+            if (DOMElements.copyRecsBtn) {
+                DOMElements.copyRecsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.recommendationsText.value, 'Recomendaciones copiadas'));
+            }
+            if (DOMElements.copyKeywordsBtn) {
+                DOMElements.copyKeywordsBtn.addEventListener('click', () => this.copyToClipboard(DOMElements.keywordsText.value, 'Palabras clave copiadas'));
+            }
         },
         async generateNote() {
             DOMElements.generateBtn.disabled = true;
@@ -172,12 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        incomingData
-                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ incomingData }),
                 });
 
                 if (!response.ok) {
@@ -186,19 +198,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const data = await response.json();
-                DOMElements.resultText.value = data.report || "";
-                DOMElements.recommendationsText.value = data.recommendations || "";
-                DOMElements.keywordsText.value = data.keywords || "";
+
+                // --- INICIO: MODIFICACIÓN CLAVE ---
+                // Solo rellenamos los campos si existen en el DOM
+                if (DOMElements.resultText) {
+                    DOMElements.resultText.value = data.report || "";
+                }
+                if (DOMElements.recommendationsText) {
+                    DOMElements.recommendationsText.value = data.recommendations || "";
+                }
+                if (DOMElements.keywordsText) {
+                    DOMElements.keywordsText.value = data.keywords || "";
+                }
+                // --- FIN: MODIFICACIÓN CLAVE ---
 
             } catch (error) {
-                DOMElements.resultText.value = `Error: ${error.message}`;
+                if (DOMElements.resultText) {
+                    DOMElements.resultText.value = `Error: ${error.message}`;
+                }
             } finally {
                 DOMElements.generateBtn.disabled = false;
                 DOMElements.spinner.classList.add('hidden');
                 DOMElements.btnText.textContent = "Generar Texto";
             }
         },
-        // FUNCIÓN DE EXPORTAR A PDF COMPLETA Y CORREGIDA
         exportToPDF() {
             const reportText = DOMElements.resultText.value;
             if (!reportText.trim()) {
@@ -240,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             y += 10;
 
             const addSection = (title, textContent) => {
+                // Solo añadimos la sección si el elemento existe y tiene contenido
                 if (!textContent || !textContent.trim()) return;
                 doc.setFontSize(14);
                 doc.setFont(undefined, 'bold');
@@ -261,8 +285,13 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             addSection("Nota de Evolución", DOMElements.resultText.value);
-            addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
-            addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+            // Comprobamos si los otros campos existen antes de añadirlos al PDF
+            if (DOMElements.recommendationsText) {
+                addSection("Recomendaciones y Plan", DOMElements.recommendationsText.value);
+            }
+            if (DOMElements.keywordsText) {
+                addSection("Resumen (Palabras Clave)", DOMElements.keywordsText.value);
+            }
             
             const fileName = `Informe_${nombre.replace(/\s+/g, '_') || 'AxiomNote'}.pdf`;
             doc.save(fileName);
@@ -274,9 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     duration: 3000,
                     gravity: "bottom",
                     position: "right",
-                    style: {
-                        background: "linear-gradient(to right, #ff5f6d, #ffc371)",
-                    }
+                    style: { background: "linear-gradient(to right, #ff5f6d, #ffc371)" }
                 }).showToast();
                 return;
             }
@@ -286,16 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     duration: 3000,
                     gravity: "bottom",
                     position: "right",
-                    style: {
-                        background: "linear-gradient(to right, #00b09b, #96c93d)",
-                    }
+                    style: { background: "linear-gradient(to right, #00b09b, #96c93d)" }
                 }).showToast();
             });
         },
         copyFullReport() {
             const report = DOMElements.resultText.value;
-            const recs = DOMElements.recommendationsText.value;
-            const keywords = DOMElements.keywordsText.value;
+            // Comprobamos si los otros campos existen antes de intentar leer su valor
+            const recs = DOMElements.recommendationsText ? DOMElements.recommendationsText.value : "";
+            const keywords = DOMElements.keywordsText ? DOMElements.keywordsText.value : "";
+
             if (!report && !recs && !keywords) {
                  this.copyToClipboard('', 'No hay nada que copiar');
                  return;
@@ -319,3 +346,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     App.init();
 });
+
