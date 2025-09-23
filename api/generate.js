@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: ÚNICA MODIFICACIÓN (CAPA DE SEGURIDAD) ---
+    // --- INICIO: CAPA DE SEGURIDAD ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -15,9 +15,9 @@ export default async (req, res) => {
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: ÚNICA MODIFICACIÓN ---
+    // --- FIN: CAPA DE SEGURIDAD ---
 
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GOOGLE_AQUÍ;
 
     if (!apiKey) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
@@ -34,6 +34,7 @@ export default async (req, res) => {
 1.  **LENGUAJE PROFESIONAL:** Redacta el informe en un estilo narrativo y fluido, como lo haría un médico experimentado para una historia clínica oficial. Evita el estilo telegráfico o de lista.
 2.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
 3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
+4.  **FORMATO LIMPIO:** No uses NUNCA formato Markdown (como ** o #) en tu respuesta. El resultado debe ser texto plano y limpio.
 `;
 
     const reglaDeFormato = `
@@ -51,7 +52,7 @@ Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora 
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es transformar las siguientes notas esquemáticas en un párrafo de ingreso narrativo, profesional y bien redactado para la historia clínica.
+Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es transformar las siguientes notas esquemáticas en un informe de urgencias narrativo, profesional y bien redactado para la historia clínica, con un estilo de texto plano y limpio.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
@@ -64,7 +65,7 @@ ${JSON.stringify(incomingData, null, 2)}
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria, agrupando la información en párrafos lógicos.
+Actúa como un médico internista experimentado redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria, agrupando la información en párrafos lógicos y en texto plano.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
@@ -83,14 +84,24 @@ ${JSON.stringify(incomingData, null, 2)}
         break;
 
       case 'evolutivo':
+        const resumen = incomingData['evo-resumen'] || 'No reportado.';
+        const cambios = incomingData['evo-cambios'] || 'No reportado.';
+        const plan = incomingData['evo-plan'] || 'No reportado.';
+
         masterPrompt = `
-Actúa como un médico de planta redactando una nota de evolución concisa y profesional. Transforma los siguientes puntos en un párrafo narrativo.
+Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido, coherente y en texto plano.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-A continuación se presentan los datos para generar el EVOLUTIVO DE PLANTA en español:
+
+**Integra la siguiente información en una única nota de evolución fluida:**
+
+* **Estado General del Paciente:** ${resumen}
+* **Eventos Relevantes:** ${cambios}
+* **Plan a Seguir:** ${plan}
+
 ---
-${JSON.stringify(incomingData, null, 2)}
+**Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
 ---
 `;
         break;
@@ -101,7 +112,18 @@ ${JSON.stringify(incomingData, null, 2)}
     
     const modelName = "gemini-1.5-pro-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-    const requestBody = { contents: [{ parts: [{ text: masterPrompt }] }] };
+
+    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
+    const generationConfig = {
+      "temperature": 0.2,
+    };
+
+    const requestBody = { 
+      contents: [{ parts: [{ text: masterPrompt }] }],
+      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
+    };
+    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
+
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
     if (!googleResponse.ok) {
