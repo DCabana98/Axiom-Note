@@ -84,7 +84,7 @@ ${JSON.stringify(incomingData, null, 2)}
 ---`;
         break;
 
-      // --- INICIO: NUEVA VERSIÓN DEL PROMPT EVOLUTIVO ---
+      // --- INICIO: NUEVA VERSIÓN MEJORADA DEL PROMPT EVOLUTIVO ---
       case 'evolutivo':
         // Construimos un solo bloque de texto con toda la información disponible.
         let infoCompleta = "";
@@ -109,7 +109,7 @@ Redacta un párrafo narrativo que integre la siguiente información clínica sin
 "${infoCompleta}"
 `;
         break;
-      // --- FIN: NUEVA VERSIÓN DEL PROMPT EVOLUTIVO ---
+      // --- FIN: NUEVA VERSIÓN MEJORADA DEL PROMPT EVOLUTIVO ---
 
       default:
         masterPrompt = "Contexto no reconocido.";
