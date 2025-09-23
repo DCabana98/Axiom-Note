@@ -84,32 +84,32 @@ ${JSON.stringify(incomingData, null, 2)}
 ---`;
         break;
 
-      // --- INICIO: NUEVA VERSIÓN MEJORADA DEL PROMPT EVOLUTIVO ---
+      // --- INICIO: NUEVA VERSIÓN SOAP DEL PROMPT EVOLUTIVO ---
       case 'evolutivo':
-        // Construimos un solo bloque de texto con toda la información disponible.
-        let infoCompleta = "";
-        if (incomingData['evo-resumen']) {
-          infoCompleta += `Sobre el estado general del paciente: ${incomingData['evo-resumen']}. `;
-        }
-        if (incomingData['evo-cambios']) {
-          infoCompleta += `Como eventos relevantes en las últimas horas: ${incomingData['evo-cambios']}. `;
-        }
-        if (incomingData['evo-plan']) {
-          infoCompleta += `El plan a seguir es: ${incomingData['evo-plan']}.`;
-        }
+        const subjetivoObjetivo = incomingData['evo-subjetivo-objetivo'] || 'Sin datos.';
+        const analisis = incomingData['evo-analisis'] || 'Sin datos.';
+        const plan = incomingData['evo-plan'] || 'Sin datos.';
 
         masterPrompt = `
-Actúa como un médico de planta que redacta una NOTA DE EVOLUCIÓN concisa y profesional.
-Tu tarea es tomar la siguiente información clínica y sintetizarla en un único párrafo narrativo, coherente y fluido en español.
+Actúa como un médico de planta que redacta una NOTA DE EVOLUCIÓN concisa y profesional en formato SOAP.
+Tu tarea es tomar los siguientes datos y redactar cada sección de forma narrativa, profesional y fluida en español.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-Redacta un párrafo narrativo que integre la siguiente información clínica sin usar listas ni guiones:
-"${infoCompleta}"
+Redacta la nota de evolución integrando la siguiente información en las secciones correspondientes del formato SOAP:
+
+S/O (Datos Subjetivos y Objetivos):
+${subjetivoObjetivo}
+
+A (Análisis de la Evolución):
+${analisis}
+
+P (Plan a Seguir):
+${plan}
 `;
         break;
-      // --- FIN: NUEVA VERSIÓN MEJORADA DEL PROMPT EVOLUTIVO ---
+      // --- FIN: NUEVA VERSIÓN SOAP DEL PROMPT EVOLUTIVO ---
 
       default:
         masterPrompt = "Contexto no reconocido.";

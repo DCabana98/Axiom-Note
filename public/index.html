@@ -108,16 +108,27 @@
 
             <div id="evolutivo-fields" class="hidden">
                 <details open>
-                    <summary>Nota de Evolutivo</summary>
+                    <summary>Nota de Evolutivo (Formato SOAP)</summary>
                     <fieldset>
                         <div><label for="evo-fecha-hora">Fecha y Hora</label><input type="datetime-local" id="evo-fecha-hora"></div>
-                        <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
-                        <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
-                        <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
+                        
+                        <div class="pattern-group">
+                            <label for="evo-subjetivo-objetivo">S/O - Datos Subjetivos y Objetivos</label>
+                            <textarea id="evo-subjetivo-objetivo" placeholder="Síntomas referidos por el paciente, constantes vitales, resultados de pruebas, hallazgos de la exploración..."></textarea>
+                        </div>
+
+                        <div class="pattern-group">
+                            <label for="evo-analisis">A - Análisis de la Evolución</label>
+                            <textarea id="evo-analisis" placeholder="Interpretación de los datos anteriores. Ej: Paciente con evolución favorable, mejoría de la disnea, afebril..."></textarea>
+                        </div>
+
+                        <div class="pattern-group">
+                            <label for="evo-plan">P - Plan a Seguir</label>
+                            <textarea id="evo-plan" placeholder="Mantener misma pauta, pendiente de resultados, revalorar por la mañana..."></textarea>
+                        </div>
                     </fieldset>
                 </details>
             </div>
-
             <button type="button" id="generate-btn">
                 <span id="spinner" class="spinner hidden"></span>
                 <span id="btn-text">Generar Texto</span>
@@ -136,9 +147,9 @@
                     <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
                 </div>
             </div>
-             <div style="margin-top: 20px; text-align: right;">
-                  <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
-            </div>
+               <div style="margin-top: 20px; text-align: right;">
+                    <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
+               </div>
         </form>
     </div>
     
