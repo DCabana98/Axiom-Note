@@ -8,16 +8,13 @@ export default async (req, res) => {
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
-
     const { contexto } = incomingData;
     const contextosValidos = ['urgencias', 'planta', 'evolutivo'];
-
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
-    // --- LÍNEA CORREGIDA ---
     const apiKey = process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
