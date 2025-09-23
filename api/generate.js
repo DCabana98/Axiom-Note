@@ -8,14 +8,17 @@ export default async (req, res) => {
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
+
     const { contexto } = incomingData;
     const contextosValidos = ['urgencias', 'planta', 'evolutivo'];
+
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
-    const apiKey = process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GOOGLE_AQUÍ;
+
     if (!apiKey) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
     }
@@ -23,138 +26,126 @@ export default async (req, res) => {
     let masterPrompt;
     
     const reglaDeOro = `
-NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. 
-Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. 
-Es preferible un informe corto y preciso que uno largo e inventado.
+**REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
 
     const reglaDeEstilo = `
-REGLAS DE ESTILO Y TONO:
-1.  LENGUAJE PROFESIONAL: redacta el informe en estilo narrativo y fluido, como un médico experimentado. 
-2.  EFICIENCIA: usa abreviaturas médicas comunes cuando corresponda (ej: BEG, ACR, tto, AP, IQ).
-3.  OBJETIVIDAD: limita el informe estrictamente a la información proporcionada.
-4.  FORMATO LIMPIO: no uses formato Markdown ni símbolos especiales. Solo texto plano.
+**REGLAS DE ESTILO Y TONO:**
+1.  **LENGUAJE PROFESIONAL:** Redacta el informe en un estilo narrativo y fluido, como lo haría un médico experimentado para una historia clínica oficial. Evita el estilo telegráfico o de lista.
+2.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
+3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
+4.  **FORMATO LIMPIO:** No uses NUNCA formato Markdown (como ** o #) en tu respuesta. El resultado debe ser texto plano y limpio.
 `;
 
     const reglaDeFormato = `
-INSTRUCCIÓN FINAL:
-Debes generar SIEMPRE 3 bloques de texto separados:
-1. Informe principal.
-2. Recomendaciones y plan a seguir.
-3. Una lista de 5 a 7 palabras clave.
+**INSTRUCCIÓN FINAL MUY IMPORTANTE:**
+Debes generar 3 bloques de texto separados.
+1.  El informe principal.
+2.  Las recomendaciones y el plan a seguir.
+3.  Una lista de 5 a 7 palabras clave.
 
-Separa el informe principal de las recomendaciones con:
----SEPARADOR---
-Después de las recomendaciones, añade otra línea que contenga:
----KEYWORDS---
+Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
+Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
 `;
+
 
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. 
-Transforma las siguientes notas esquemáticas en un informe narrativo y profesional en español.
+Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es transformar las siguientes notas esquemáticas en un informe de urgencias narrativo, profesional y bien redactado para la historia clínica, con un estilo de texto plano y limpio.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-
-Datos para el informe de URGENCIAS:
+A continuación se presentan los datos para generar el informe de URGENCIAS en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
----`;
+---
+`;
         break;
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado redactando un informe de ingreso en planta. 
-Crea un documento completo, estructurado y con redacción fluida en español.
+Actúa como un médico internista experimentado redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria, agrupando la información en párrafos lógicos y en texto plano.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-ESTRUCTURA DEL INFORME:
-1. Información inicial y motivo de ingreso.
-2. Contexto del paciente: alergias y antecedentes.
-3. Evaluación clínica: exploración y resultados.
-4. Plan de actuación: tratamiento, cuidados y justificación.
+**ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
+1.  **Información Inicial y Motivo:** Empieza presentando al paciente y el motivo de ingreso.
+2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente las alergias y los antecedentes.
+3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la exploración y los resultados de las pruebas.
+4.  **Plan de Actuación:** Detalla el tratamiento, los cuidados de enfermería y la justificación de intervenciones.
 
-Datos para el informe de INGRESO EN PLANTA:
+A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
 ---
 ${JSON.stringify(incomingData, null, 2)}
----`;
+---
+`;
         break;
 
-      // --- INICIO: NUEVA VERSIÓN SOAP DEL PROMPT EVOLUTIVO ---
       case 'evolutivo':
-        const subjetivoObjetivo = incomingData['evo-subjetivo-objetivo'] || 'Sin datos.';
-        const analisis = incomingData['evo-analisis'] || 'Sin datos.';
-        const plan = incomingData['evo-plan'] || 'Sin datos.';
+        const resumen = incomingData['evo-resumen'] || 'No reportado.';
+        const cambios = incomingData['evo-cambios'] || 'No reportado.';
+        const plan = incomingData['evo-plan'] || 'No reportado.';
 
         masterPrompt = `
-Actúa como un médico de planta que redacta una NOTA DE EVOLUCIÓN concisa y profesional en formato SOAP.
-Tu tarea es tomar los siguientes datos y redactar cada sección de forma narrativa, profesional y fluida en español.
-El informe principal debe ser un único párrafo que integre la información de las 3 secciones (S/O, A y P).
+Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido, coherente y en texto plano.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-Redacta la nota de evolución integrando la siguiente información en las secciones correspondientes del formato SOAP:
+**Integra la siguiente información en una única nota de evolución fluida:**
 
-S/O (Datos Subjetivos y Objetivos):
-${subjetivoObjetivo}
+* **Estado General del Paciente:** ${resumen}
+* **Eventos Relevantes:** ${cambios}
+* **Plan a Seguir:** ${plan}
 
-A (Análisis de la Evolución):
-${analisis}
-
-P (Plan a Seguir):
-${plan}
+---
+**Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
+---
 `;
         break;
-      // --- FIN: NUEVA VERSIÓN SOAP DEL PROMPT EVOLUTIVO ---
 
       default:
         masterPrompt = "Contexto no reconocido.";
     }
-
-    // --- Configuración del modelo ---
+    
     const modelName = "gemini-1.5-pro-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    const generationConfig = { temperature: 0.2 };
+    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
+    const generationConfig = {
+      "temperature": 0.2,
+    };
 
     const requestBody = { 
       contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig
+      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
     };
+    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
 
-    // --- Llamada a la API ---
-    const googleResponse = await fetch(apiUrl, { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(requestBody) 
-    });
+    const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
     if (!googleResponse.ok) {
       const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}`, details: errorData });
+      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
       return;
     }
 
     const data = await googleResponse.json();
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const fullText = data.candidates[0].content.parts[0].text;
 
-    // --- Parsing de la respuesta ---
     const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0]?.trim() || "No se pudo generar el informe.";
+    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
     
     const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
-    const recommendationsPart = recommendationsAndKeywords[0]?.trim() || "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1]?.trim() || "No se pudo generar el resumen.";
+    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
+    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
 
     res.status(200).json({ 
-      report: reportPart,
-      recommendations: recommendationsPart,
-      keywords: keywordsPart
+        report: reportPart,
+        recommendations: recommendationsPart,
+        keywords: keywordsPart
     });
 
   } catch (error) {
