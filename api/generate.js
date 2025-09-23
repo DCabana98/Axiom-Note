@@ -17,7 +17,8 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
-    const apiKey = process.env.GOOGLE_AQUÍ;
+    // --- LÍNEA CORREGIDA ---
+    const apiKey = process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
@@ -113,16 +114,14 @@ ${reglaDeFormato}
     const modelName = "gemini-1.5-pro-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
     const generationConfig = {
       "temperature": 0.2,
     };
 
     const requestBody = { 
       contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
+      generationConfig: generationConfig
     };
-    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
 
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
