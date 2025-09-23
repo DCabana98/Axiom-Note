@@ -7,6 +7,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axiom Note</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="/styles.css">
@@ -35,7 +44,6 @@
             </div>
             
             <div id="urgencias-fields" class="hidden">
-                <!-- SECCIÓN DE URGENCIAS (SIN CAMBIOS) -->
                 <details open>
                     <summary>Datos del Paciente</summary>
                     <fieldset>
@@ -70,7 +78,6 @@
             </div>
 
             <div id="planta-fields" class="hidden">
-                <!-- SECCIÓN DE INGRESO EN PLANTA (SIN CAMBIOS) -->
                 <details open>
                     <summary>Información del Paciente</summary>
                     <fieldset>
@@ -106,62 +113,39 @@
                 </details>
             </div>
 
-            <!-- INICIO SECCIÓN EVOLUTIVO (FORMATO SOAP) -->
             <div id="evolutivo-fields" class="hidden">
                 <details open>
-                    <summary>Nota de Evolutivo (Formato SOAP)</summary>
+                    <summary>Nota de Evolutivo</summary>
                     <fieldset>
                         <div><label for="evo-fecha-hora">Fecha y Hora</label><input type="datetime-local" id="evo-fecha-hora"></div>
-                        
-                        <div class="pattern-group">
-                            <label for="evo-subjetivo-objetivo">S/O - Datos Subjetivos y Objetivos</label>
-                            <textarea id="evo-subjetivo-objetivo" placeholder="Síntomas referidos por el paciente, constantes vitales, resultados de pruebas, hallazgos de la exploración..."></textarea>
-                        </div>
-
-                        <div class="pattern-group">
-                            <label for="evo-analisis">A - Análisis de la Evolución</label>
-                            <textarea id="evo-analisis" placeholder="Interpretación de los datos anteriores. Ej: Paciente con evolución favorable, mejoría de la disnea, afebril..."></textarea>
-                        </div>
-
-                        <div class="pattern-group">
-                            <label for="evo-plan">P - Plan a Seguir</label>
-                            <textarea id="evo-plan" placeholder="Mantener misma pauta, pendiente de resultados, revalorar por la mañana..."></textarea>
-                        </div>
+                        <div class="pattern-group"><label for="evo-resumen">Resumen del Estado General</label><textarea id="evo-resumen" placeholder="Ej: Paciente estable, afebril, buena tolerancia a la dieta..."></textarea></div>
+                        <div class="pattern-group"><label for="evo-cambios">Cambios o Eventos Relevantes</label><textarea id="evo-cambios" placeholder="Ej: Presentó pico febril de 38.5ºC, se extrajo hemocultivo..."></textarea></div>
+                        <div class="pattern-group"><label for="evo-plan">Plan a Seguir</label><textarea id="evo-plan" placeholder="Ej: Mantener misma pauta. Pendiente de resultados..."></textarea></div>
                     </fieldset>
                 </details>
             </div>
-            <!-- FIN SECCIÓN EVOLUTIVO -->
 
             <button type="button" id="generate-btn">
                 <span id="spinner" class="spinner hidden"></span>
                 <span id="btn-text">Generar Texto</span>
             </button>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario Actual</button>
+            </div>
 
-            <!-- INICIO SECCIÓN DE RESULTADOS -->
             <div class="result-container">
                 <div class="result-header"><h2>Nota de Evolución</h2><button type="button" id="copy-report-btn" class="utility-btn">Copiar Evolución</button></div>
-                <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..."></textarea>
-                
-                <div id="recommendations-container">
-                    <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
-                    <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..."></textarea>
-                </div>
-
-                <div id="keywords-container">
-                    <div class="result-header"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
-                    <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..."></textarea>
-                </div>
+                <textarea id="result-text" placeholder="Aquí aparecerá el informe principal..." readonly></textarea>
+                <div class="result-header"><h2>Recomendaciones y Plan</h2><button type="button" id="copy-recs-btn" class="utility-btn">Copiar Recomendaciones</button></div>
+                <textarea id="recommendations-text" placeholder="Aquí aparecerán las recomendaciones..." readonly></textarea>
+                <div class="result-header"><h3>Resumen (Palabras Clave)</h3><button type="button" id="copy-keywords-btn" class="utility-btn">Copiar Claves</button></div>
+                <textarea id="keywords-text" placeholder="Aquí aparecerán las palabras clave del informe..." readonly></textarea>
                 
                 <div class="export-section">
                     <button type="button" id="copy-all-btn" class="utility-btn">Copiar Informe Completo</button>
                     <button type="button" id="export-pdf-btn" class="utility-btn">Exportar a PDF</button>
                 </div>
             </div>
-            <!-- FIN SECCIÓN DE RESULTADOS -->
-
-               <div style="margin-top: 20px; text-align: right;">
-                    <button type="button" id="clear-btn" class="utility-btn">Limpiar Formulario</button>
-               </div>
         </form>
     </div>
     
@@ -169,4 +153,3 @@
     <script src="/app.js"></script>
 </body>
 </html>
-
