@@ -15,101 +15,90 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
+    // DEBUG: Muestra las claves que llegan para verificar nombres de campos
+    console.log("Claves recibidas en incomingData:", Object.keys(incomingData));
+
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
     }
 
-    let masterPrompt;
-    
+    // --- INICIO: LÓGICA ROBUSTA DE EXTRACCIÓN DE DATOS ---
+    const getField = (obj, keys) => {
+      for (const key of keys) {
+        if (obj[key] !== undefined && obj[key] !== null) {
+          const value = String(obj[key]).trim();
+          if (value.length > 0) return value;
+        }
+      }
+      return null;
+    };
+
+    const resumenKeys = ['evo-resumen', 'resumen', 'estado_general'];
+    const cambiosKeys = ['evo-cambios', 'cambios', 'eventos_relevantes'];
+    const planKeys = ['evo-plan', 'plan', 'plan_a_seguir'];
+
+    const resumen = getField(incomingData, resumenKeys);
+    const cambios = getField(incomingData, cambiosKeys);
+    const plan = getField(incomingData, planKeys);
+    // --- FIN: LÓGICA ROBUSTA DE EXTRACCIÓN DE DATOS ---
+
     const reglaDeOro = `
-NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. 
-Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. 
-Es preferible un informe corto y preciso que uno largo e inventado.
+NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Si un campo está ausente, omítelo. Prefiere brevedad y precisión.
 `;
 
     const reglaDeEstilo = `
 REGLAS DE ESTILO Y TONO:
-1.  LENGUAJE PROFESIONAL: redacta el informe en estilo narrativo y fluido, como un médico experimentado. 
-2.  EFICIENCIA: usa abreviaturas médicas comunes cuando corresponda (ej: BEG, ACR, tto, AP, IQ).
-3.  OBJETIVIDAD: limita el informe estrictamente a la información proporcionada.
-4.  FORMATO LIMPIO: no uses formato Markdown ni símbolos especiales. Solo texto plano.
+1. Lenguaje profesional, narrativo y fluido (como un médico experimentado).
+2. Usa abreviaturas médicas comunes cuando corresponda (ej: BEG, ACR, tto).
+3. Limítate estrictamente a la información proporcionada.
+4. Texto plano: no uses formato Markdown (como ** o #).
 `;
 
     const reglaDeFormato = `
 INSTRUCCIÓN FINAL:
-Debes generar SIEMPRE 3 bloques de texto separados:
-1. Informe principal.
-2. Recomendaciones y plan a seguir.
-3. Una lista de 5 a 7 palabras clave.
-
-Separa el informe principal de las recomendaciones con:
+Genera SIEMPRE 3 bloques de texto separados:
+1) Informe principal (debe contener, si existen: Estado general; Eventos relevantes; y un resumen del Plan).
 ---SEPARADOR---
-Después de las recomendaciones, añade otra línea que contenga:
+2) Recomendaciones y plan a seguir (detallar los pasos prácticos y monitorización).
 ---KEYWORDS---
+3) Lista de 5 a 7 palabras clave separadas por comas.
 `;
+
+    let masterPrompt = "";
 
     switch (contexto) {
       case 'urgencias':
-        masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. 
-Transforma las siguientes notas esquemáticas en un informe narrativo y profesional en español.
-${reglaDeOro}
-${reglaDeEstilo}
-${reglaDeFormato}
-
-Datos para el informe de URGENCIAS:
----
-${JSON.stringify(incomingData, null, 2)}
----`;
-        break;
-
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado redactando un informe de ingreso en planta. 
-Crea un documento completo, estructurado y con redacción fluida en español.
+Actúa como un médico experimentado (${contexto === 'urgencias' ? 'de urgencias' : 'internista'}). Transforma las siguientes notas en un informe narrativo y profesional en español.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-ESTRUCTURA DEL INFORME:
-1. Información inicial y motivo de ingreso.
-2. Contexto del paciente: alergias y antecedentes.
-3. Evaluación clínica: exploración y resultados.
-4. Plan de actuación: tratamiento, cuidados y justificación.
-
-Datos para el informe de INGRESO EN PLANTA:
+Datos para el informe de ${contexto.toUpperCase()}:
 ---
 ${JSON.stringify(incomingData, null, 2)}
 ---`;
         break;
 
       case 'evolutivo':
-        // Construir texto dinámicamente
         let evoInfo = "";
-        if (incomingData['evo-resumen']) {
-          evoInfo += `Estado general del paciente: ${incomingData['evo-resumen']}\n`;
-        }
-        if (incomingData['evo-cambios']) {
-          evoInfo += `Eventos relevantes: ${incomingData['evo-cambios']}\n`;
-        }
-        if (incomingData['evo-plan']) {
-          evoInfo += `Plan a seguir: ${incomingData['evo-plan']}\n`;
-        }
-
+        if (resumen) evoInfo += `Estado general del paciente: ${resumen}\n`;
+        if (cambios) evoInfo += `Eventos relevantes: ${cambios}\n`;
+        if (plan) evoInfo += `Plan a seguir: ${plan}\n`;
+        
         masterPrompt = `
-Actúa como un médico de planta redactando una NOTA DE EVOLUCIÓN concisa y profesional para la historia clínica. 
-Tu tarea es transformar la información disponible en un texto narrativo y coherente en español.
+Actúa como un médico de planta redactando una NOTA DE EVOLUCIÓN concisa y profesional.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
 
-IMPORTANTE: Usa TODA la información disponible (estado general, eventos relevantes y plan), reorganizándola de manera lógica y fluida. 
-Si alguno de los campos está vacío, simplemente no lo incluyas.
+IMPORTANTE: El INFORME PRINCIPAL debe integrar en un párrafo narrativo y fluido la siguiente información: ${evoInfo ? evoInfo.trim() : 'Revisa los datos adjuntos.'}
+Si un campo no existe, NO lo menciones.
 
 Información del paciente:
 ${evoInfo}
-
 ---
 Ejemplo de inicio: "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable..."
 ---`;
@@ -119,45 +108,57 @@ Ejemplo de inicio: "Paciente que evoluciona favorablemente, manteniéndose hemod
         masterPrompt = "Contexto no reconocido.";
     }
 
-    // --- Configuración del modelo ---
     const modelName = "gemini-1.5-pro-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
     const generationConfig = { temperature: 0.2 };
-
-    const requestBody = { 
+    const requestBody = {
       contents: [{ parts: [{ text: masterPrompt }] }],
       generationConfig
     };
 
-    // --- Llamada a la API ---
-    const googleResponse = await fetch(apiUrl, { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(requestBody) 
+    const googleResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
     });
 
     if (!googleResponse.ok) {
-      const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}`, details: errorData });
-      return;
+      const errorData = await googleResponse.json().catch(() => ({}));
+      return res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}`, details: errorData });
     }
 
     const data = await googleResponse.json();
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const fullText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    // --- Parsing de la respuesta ---
-    const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0]?.trim() || "No se pudo generar el informe.";
-    
-    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
-    const recommendationsPart = recommendationsAndKeywords[0]?.trim() || "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1]?.trim() || "No se pudo generar el resumen.";
+    // --- INICIO: PARSING ROBUSTO Y FALLBACKS ---
+    const sepRegex = /---\s*SEPARADOR\s*---/i;
+    const keyRegex = /---\s*KEYWORDS\s*---/i;
 
-    res.status(200).json({ 
-      report: reportPart,
-      recommendations: recommendationsPart,
-      keywords: keywordsPart
+    let reportPart, recommendationsPart, keywordsPart;
+
+    if (sepRegex.test(fullText)) {
+      const [r, rest] = fullText.split(sepRegex);
+      reportPart = r.trim();
+      if (keyRegex.test(rest)) {
+        const [rec, kw] = rest.split(keyRegex);
+        recommendationsPart = rec.trim();
+        keywordsPart = kw.trim();
+      } else {
+        recommendationsPart = rest.trim();
+        keywordsPart = "No generadas";
+      }
+    } else {
+      // Fallback si no hay separadores
+      reportPart = fullText.trim();
+      recommendationsPart = plan || "Revisar plan en nota principal.";
+      keywordsPart = "No generadas";
+    }
+    // --- FIN: PARSING ROBUSTO Y FALLBACKS ---
+
+    res.status(200).json({
+      report: reportPart || "No se pudo generar el informe.",
+      recommendations: recommendationsPart || "No se pudieron generar las recomendaciones.",
+      keywords: keywordsPart || "No se pudieron generar las palabras clave."
     });
 
   } catch (error) {
