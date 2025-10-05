@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE SEGURIDAD ---
+    // --- CAPA DE SEGURIDAD ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -15,71 +15,60 @@ export default async (req, res) => {
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: CAPA DE SEGURIDAD ---
 
-    const apiKey = process.env.GOOGLE_AQUÍ;
-
+    // --- CLAVE DE GOOGLE ---
+    const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) {
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
     }
 
-    let masterPrompt;
-    
+    // --- BLOQUES DE REGLAS ---
     const reglaDeOro = `
-**REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
+**REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. 
+Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final.
 `;
 
     const reglaDeEstilo = `
 **REGLAS DE ESTILO Y TONO:**
-1.  **LENGUAJE PROFESIONAL:** Redacta el informe en un estilo narrativo y fluido, como lo haría un médico experimentado para una historia clínica oficial. Evita el estilo telegráfico o de lista.
-2.  **EFICIENCIA:** Usa abreviaturas médicas comunes cuando sea apropiado (ej: 'BEG' para Buen Estado General, 'ACR' para Auscultación Cardiorrespiratoria, 'tto' para tratamiento, 'AP' para antecedentes personales, 'IQ' para intervenciones quirúrgicas).
+1.  **LENGUAJE PROFESIONAL:** Redacta el informe en un estilo narrativo y fluido.
+2.  **EFICIENCIA:** Usa abreviaturas médicas comunes (ej: BEG, ACR, AP, IQ...).
 3.  **OBJETIVIDAD:** Limítate estrictamente a la información proporcionada.
-4.  **FORMATO LIMPIO:** No uses NUNCA formato Markdown (como ** o #) en tu respuesta. El resultado debe ser texto plano y limpio.
+4.  **FORMATO LIMPIO:** No uses Markdown ni símbolos especiales.
 `;
 
     const reglaDeFormato = `
-**INSTRUCCIÓN FINAL MUY IMPORTANTE:**
-Debes generar 3 bloques de texto separados.
-1.  El informe principal.
-2.  Las recomendaciones y el plan a seguir.
-3.  Una lista de 5 a 7 palabras clave.
-
-Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
-Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
+**INSTRUCCIÓN FINAL:**
+Genera 3 bloques:
+1. Informe principal
+2. Recomendaciones
+3. Palabras clave (5 a 7)
+Separa con:
+---SEPARADOR---
+---KEYWORDS---
 `;
 
-
+    // --- PROMPT SEGÚN CONTEXTO ---
+    let masterPrompt;
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
-Actúa como un médico de urgencias senior con más de 20 años de experiencia. Tu tarea es transformar las siguientes notas esquemáticas en un informe de urgencias narrativo, profesional y bien redactado para la historia clínica, con un estilo de texto plano y limpio.
+Actúa como un médico de urgencias senior.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-A continuación se presentan los datos para generar el informe de URGENCIAS en español:
----
+Datos para generar el informe de URGENCIAS:
 ${JSON.stringify(incomingData, null, 2)}
----
 `;
         break;
 
       case 'planta':
         masterPrompt = `
-Actúa como un médico internista experimentado redactando un informe de ingreso en planta. El objetivo es crear un documento completo, bien estructurado y con una redacción fluida que sirva como base para toda la estancia hospitalaria, agrupando la información en párrafos lógicos y en texto plano.
+Actúa como un médico internista redactando un informe de ingreso en planta.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-
-**ESTRUCTURA DEL INFORME (BASADO EN BLOQUES):**
-1.  **Información Inicial y Motivo:** Empieza presentando al paciente y el motivo de ingreso.
-2.  **Contexto del Paciente:** Sintetiza en un párrafo coherente las alergias y los antecedentes.
-3.  **Evaluación Clínica:** Describe de forma narrativa los hallazgos de la exploración y los resultados de las pruebas.
-4.  **Plan de Actuación:** Detalla el tratamiento, los cuidados de enfermería y la justificación de intervenciones.
-
-A continuación se presentan los datos para generar el informe de INGRESO EN PLANTA en español:
----
+Datos para generar el informe de PLANTA:
 ${JSON.stringify(incomingData, null, 2)}
----
 `;
         break;
 
@@ -87,69 +76,80 @@ ${JSON.stringify(incomingData, null, 2)}
         const resumen = incomingData['evo-resumen'] || 'No reportado.';
         const cambios = incomingData['evo-cambios'] || 'No reportado.';
         const plan = incomingData['evo-plan'] || 'No reportado.';
-
         masterPrompt = `
-Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido, coherente y en texto plano.
+Actúa como un médico de planta redactando una nota de evolución clínica.
 ${reglaDeOro}
 ${reglaDeEstilo}
 ${reglaDeFormato}
-
-**Integra la siguiente información en una única nota de evolución fluida:**
-
-* **Estado General del Paciente:** ${resumen}
-* **Eventos Relevantes:** ${cambios}
-* **Plan a Seguir:** ${plan}
-
----
-**Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
----
+* Estado General: ${resumen}
+* Eventos Relevantes: ${cambios}
+* Plan: ${plan}
 `;
         break;
 
       default:
         masterPrompt = "Contexto no reconocido.";
     }
-    
-    const modelName = "gemini-1.5-flash-latest";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
-    const generationConfig = {
-      "temperature": 0.2,
-    };
+    // --- DETECCIÓN AUTOMÁTICA DEL MODELO DISPONIBLE ---
+    let modelName = "gemini-1.5-flash-latest";
+    let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    const requestBody = { 
+    const requestBody = {
       contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
+      generationConfig: { temperature: 0.2 },
     };
-    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
 
-    const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+    // --- Primer intento con modelo avanzado ---
+    let googleResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
 
+    // Si falla, intenta con gemini-pro
     if (!googleResponse.ok) {
-      const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
-      return;
+      const errorData = await googleResponse.json().catch(() => ({}));
+      console.warn("⚠️ Error con gemini-1.5-flash, intentando con gemini-pro...", errorData);
+
+      modelName = "gemini-pro";
+      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      googleResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!googleResponse.ok) {
+        const finalError = await googleResponse.json().catch(() => ({}));
+        console.error("❌ Error final de la API de Google:", finalError);
+        return res.status(500).json({
+          error: "Error de la API de Google (ningún modelo disponible).",
+          detalles: finalError,
+        });
+      }
     }
 
+    // --- PROCESAR RESPUESTA ---
     const data = await googleResponse.json();
-    const fullText = data.candidates[0].content.parts[0].text;
+    const fullText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
-    
-    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
-    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
+    const reportPart = parts[0]?.trim() || "No se pudo generar el informe.";
 
-    res.status(200).json({ 
-        report: reportPart,
-        recommendations: recommendationsPart,
-        keywords: keywordsPart
+    const recommendationsAndKeywords = parts[1]?.split('---KEYWORDS---') || [];
+    const recommendationsPart = recommendationsAndKeywords[0]?.trim() || "No se pudieron generar las recomendaciones.";
+    const keywordsPart = recommendationsAndKeywords[1]?.trim() || "No se pudieron generar las palabras clave.";
+
+    // --- RESPUESTA FINAL ---
+    res.status(200).json({
+      report: reportPart,
+      recommendations: recommendationsPart,
+      keywords: keywordsPart,
     });
 
   } catch (error) {
-    console.error("Error en la función del servidor:", error);
+    console.error("💥 Error en el servidor:", error);
     res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
   }
 };
