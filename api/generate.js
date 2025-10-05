@@ -113,9 +113,9 @@ ${reglaDeFormato}
     
     // 2. LOGGING PARA DEPURACIÓN
     console.log(`[DEBUG] Generando informe con contexto: ${contexto}`);
-    // console.log(`[DEBUG] Prompt Master: ${masterPrompt.substring(0, 500)}...`); // Imprime solo los primeros 500 caracteres del prompt
 
-    const modelName = "gemini-1.5-flash-latest";
+    // CORRECCIÓN CRÍTICA: Se utiliza el nombre base del modelo FLASH, ya que el log mostró un error 404 con otro nombre.
+    const modelName = "gemini-1.5-flash"; 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`; 
 
     const generationConfig = {
