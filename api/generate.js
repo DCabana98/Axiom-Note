@@ -110,7 +110,7 @@ ${reglaDeFormato}
         masterPrompt = "Contexto no reconocido.";
     }
     
-    const modelName = "gemini-1.5-pro-latest";
+    const modelName = "gemini-1.5-flash-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
     // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
