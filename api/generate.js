@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE SEGURIDAD ---
+    // --- INICIO: CAPA DE SEGURIDAD Y VALIDACIÓN DE ENTRADA ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -15,16 +15,21 @@ export default async (req, res) => {
     if (!contexto || !contextosValidos.includes(contexto)) {
       return res.status(400).json({ error: `Contexto inválido. Debe ser uno de: ${contextosValidos.join(', ')}` });
     }
-    // --- FIN: CAPA DE SEGURIDAD ---
+    // --- FIN: CAPA DE SEGURIDAD Y VALIDACIÓN DE ENTRADA ---
 
-    const apiKey = process.env.GOOGLE_AQUÍ;
+    // CORRECCIÓN CRÍTICA: La variable de entorno DEBE coincidir con el nombre configurado.
+    // Usamos GEMINI_API_KEY, que fue la que funcionó previamente.
+    const apiKey = process.env.GEMINI_API_KEY; 
 
     if (!apiKey) {
-      throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
+      // Usamos el mensaje de error para GOOGLE_API_KEY por familiaridad, pero la variable real es GEMINI_API_KEY
+      // Esto lanza un error 500 con un mensaje más claro.
+      throw new Error("La variable de entorno GEMINI_API_KEY no está configurada. Por favor, revísala.");
     }
 
     let masterPrompt;
     
+    // --- Definición de Reglas ---
     const reglaDeOro = `
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
@@ -47,6 +52,7 @@ Debes generar 3 bloques de texto separados.
 Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
 Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
 `;
+    // --- Fin Definición de Reglas ---
 
 
     switch (contexto) {
@@ -84,9 +90,10 @@ ${JSON.stringify(incomingData, null, 2)}
         break;
 
       case 'evolutivo':
-        const resumen = incomingData['evo-resumen'] || 'No reportado.';
-        const cambios = incomingData['evo-cambios'] || 'No reportado.';
-        const plan = incomingData['evo-plan'] || 'No reportado.';
+        // No necesitamos estas variables temporales si solo las usamos en el prompt
+        // const resumen = incomingData['evo-resumen'] || 'No reportado.';
+        // const cambios = incomingData['evo-cambios'] || 'No reportado.';
+        // const plan = incomingData['evo-plan'] || 'No reportado.';
 
         masterPrompt = `
 Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido, coherente y en texto plano.
@@ -96,9 +103,9 @@ ${reglaDeFormato}
 
 **Integra la siguiente información en una única nota de evolución fluida:**
 
-* **Estado General del Paciente:** ${resumen}
-* **Eventos Relevantes:** ${cambios}
-* **Plan a Seguir:** ${plan}
+* **Estado General del Paciente:** ${incomingData['evo-resumen'] || 'No reportado.'}
+* **Eventos Relevantes:** ${incomingData['evo-cambios'] || 'No reportado.'}
+* **Plan a Seguir:** ${incomingData['evo-plan'] || 'No reportado.'}
 
 ---
 **Ejemplo de cómo empezar:** "Paciente que evoluciona favorablemente, manteniéndose hemodinámicamente estable y afebril..."
@@ -107,40 +114,71 @@ ${reglaDeFormato}
         break;
 
       default:
-        masterPrompt = "Contexto no reconocido.";
+        // Este caso ya se maneja con la validación de contexto al inicio, pero por si acaso.
+        masterPrompt = "Contexto no reconocido."; 
     }
     
     const modelName = "gemini-1.5-flash-latest";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    // Si la clave no estuviera en las variables de entorno, la URL no funcionaría, 
+    // pero aquí usamos la variable 'apiKey' que ya está saneada.
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`; 
 
-    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
     const generationConfig = {
-      "temperature": 0.2,
+      "temperature": 0.2, // Mantener baja para un informe médico objetivo
     };
 
     const requestBody = { 
       contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
+      generationConfig: generationConfig 
     };
-    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
 
-    const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+    const googleResponse = await fetch(apiUrl, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(requestBody) 
+    });
 
     if (!googleResponse.ok) {
+      // Si la API de Google devuelve un código de error HTTP (4xx o 5xx)
       const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
-      return;
+      const detailedMessage = errorData.error?.message || googleResponse.statusText;
+      
+      // Retornar un error detallado de la API de Google
+      return res.status(googleResponse.status).json({ 
+          error: `Error de la API de Google (${googleResponse.status}): ${detailedMessage}` 
+      });
     }
 
     const data = await googleResponse.json();
-    const fullText = data.candidates[0].content.parts[0].text;
+    
+    // --- CORRECCIÓN CRÍTICA: Validación de Respuesta de Gemini ---
+    // Chequear si el modelo generó contenido. Si no, significa que fue bloqueado (e.g., por filtro de seguridad).
+    const candidate = data.candidates?.[0];
+    const fullText = candidate?.content?.parts?.[0]?.text;
+
+    if (!fullText) {
+        let blockReason = 'razón desconocida.';
+        if (candidate?.finishReason) {
+            blockReason = `Finalizó con la razón: ${candidate.finishReason}.`;
+        } else if (data.promptFeedback?.blockReason) {
+            blockReason = `Bloqueado por filtro de seguridad: ${data.promptFeedback.blockReason}.`;
+        }
+
+        return res.status(500).json({
+            error: `La generación del informe fue rechazada. ${blockReason} Revise los datos de entrada.`
+        });
+    }
+    // --- FIN CORRECCIÓN CRÍTICA ---
 
     const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
+    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe principal.";
     
     const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
     const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
+    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen (Keywords).";
+
+    // En el caso de "evolutivo", la "recomendación" y el "informe" pueden fusionarse si el LLM no usa el separador.
+    // Aunque forzamos los separadores, es mejor que las partes reflejen lo que realmente hace cada prompt.
 
     res.status(200).json({ 
         report: reportPart,
@@ -150,6 +188,7 @@ ${reglaDeFormato}
 
   } catch (error) {
     console.error("Error en la función del servidor:", error);
-    res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
+    // Aseguramos que el error.message sea lo más informativo posible.
+    res.status(500).json({ error: `Error interno en el servidor: Fallo durante la ejecución. Mensaje: ${error.message}` });
   }
 };
