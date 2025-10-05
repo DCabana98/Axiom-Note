@@ -1,4 +1,8 @@
-import fetch from 'node-fetch';
+import { GoogleGenAI } from '@google/genai'; // Requerirá instalar esta librería
+
+// Inicializa el cliente. Si GEMINI_API_KEY está configurada en el entorno, 
+// el SDK la detectará automáticamente.
+const ai = new GoogleGenAI({});
 
 export default async (req, res) => {
   try {
@@ -17,12 +21,9 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD Y VALIDACIÓN DE ENTRADA ---
 
-    // 1. VERIFICACIÓN CRÍTICA DE LA API KEY
-    const apiKey = process.env.GEMINI_API_KEY; 
-
-    if (!apiKey) {
-      // Si la clave no existe, lanzamos este error. Este error será capturado por el catch final.
-      throw new Error("ERROR DE CONFIGURACIÓN: La variable de entorno GEMINI_API_KEY no está configurada. Revise su .env o el panel de variables del servidor.");
+    // El SDK maneja la autenticación, pero verificamos que al menos la clave exista.
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("ERROR DE CONFIGURACIÓN: La variable de entorno GEMINI_API_KEY no está configurada.");
     }
 
     let masterPrompt;
@@ -52,7 +53,7 @@ Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora 
 `;
     // --- Fin Definición de Reglas ---
 
-
+    // ... (El switch case para masterPrompt es idéntico al anterior) ...
     switch (contexto) {
       case 'urgencias':
         masterPrompt = `
@@ -107,58 +108,36 @@ ${reglaDeFormato}
         break;
 
       default:
-        // Este caso ya se maneja con la validación de contexto al inicio, pero por si acaso.
         masterPrompt = "Contexto no reconocido."; 
     }
+    // ... (Fin del switch case) ...
     
     // 2. LOGGING PARA DEPURACIÓN
     console.log(`[DEBUG] Generando informe con contexto: ${contexto}`);
 
-    // CORRECCIÓN CRÍTICA: Se utiliza el nombre base del modelo FLASH, ya que el log mostró un error 404 con otro nombre.
+    // LLAMADA AL SDK OFICIAL (gemini-1.5-flash)
     const modelName = "gemini-1.5-flash"; 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`; 
 
-    const generationConfig = {
-      "temperature": 0.2, // Mantener baja para un informe médico objetivo
-    };
-
-    const requestBody = { 
-      contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig: generationConfig 
-    };
-
-    const googleResponse = await fetch(apiUrl, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(requestBody) 
+    const response = await ai.models.generateContent({
+        model: modelName,
+        contents: [{ role: 'user', parts: [{ text: masterPrompt }] }],
+        config: {
+            temperature: 0.2,
+        },
     });
 
-    if (!googleResponse.ok) {
-      // 3. MANEJO DE ERRORES DE LA API DE GOOGLE (4xx, 5xx)
-      const errorData = await googleResponse.json();
-      const detailedMessage = errorData.error?.message || googleResponse.statusText;
-      
-      return res.status(googleResponse.status).json({ 
-          error: `Error de la API de Google (${googleResponse.status}): ${detailedMessage}` 
-      });
-    }
-
-    const data = await googleResponse.json();
-    
-    // 4. VALIDACIÓN DE RESPUESTA DE GEMINI (Contenido Bloqueado/Vacío)
-    const candidate = data.candidates?.[0];
-    const fullText = candidate?.content?.parts?.[0]?.text;
+    // 4. VALIDACIÓN Y EXTRACCIÓN DE TEXTO
+    const fullText = response?.text;
 
     if (!fullText) {
+        // El SDK maneja los errores de forma diferente. Si no hay texto, verificamos los posibles motivos.
         let blockReason = 'razón desconocida.';
-        if (candidate?.finishReason) {
-            blockReason = `Finalizó con la razón: ${candidate.finishReason}.`;
-        } else if (data.promptFeedback?.blockReason) {
-            blockReason = `Bloqueado por filtro de seguridad: ${data.promptFeedback.blockReason}.`;
+        if (response.candidates?.[0]?.finishReason) {
+            blockReason = `Finalizó con la razón: ${response.candidates[0].finishReason}.`;
         }
 
         return res.status(500).json({
-            error: `La generación del informe fue rechazada por la API. ${blockReason} Revise los datos de entrada.`
+            error: `La generación del informe fue rechazada por la API (SDK). ${blockReason} Revise los datos de entrada.`
         });
     }
 
@@ -177,7 +156,7 @@ ${reglaDeFormato}
     });
 
   } catch (error) {
-    // 6. CAPTURA DE CUALQUIER OTRO ERROR INTERNO (Errores síncronos, errores de red, etc.)
+    // 6. CAPTURA DE CUALQUIER OTRO ERROR INTERNO
     console.error("[ERROR CRÍTICO DEL SERVIDOR]", error);
     // IMPORTANTE: Devolvemos el mensaje exacto de la excepción para identificar la causa.
     res.status(500).json({ error: `Error interno al generar el informe. DETALLE: ${error.message}` });
