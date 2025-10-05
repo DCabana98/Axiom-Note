@@ -1,10 +1,8 @@
-// --- CAMBIO CLAVE: Se elimina la línea 'import fetch from 'node-fetch';' ---
-
 export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE SEGURIDAD (Se mantiene la lógica original) ---
+    // --- INICIO: CAPA DE SEGURIDAD ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -17,7 +15,7 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
-    // --- CLAVE API: Usa el nombre que tu código espera ---
+    // --- CLAVE API ---
     const apiKey = process.env.GOOGLE_API_KEY; 
 
     if (!apiKey) {
@@ -26,7 +24,7 @@ export default async (req, res) => {
 
     let masterPrompt;
 
-    // Se mantienen las reglas, son perfectas para guiar a Gemini
+    // Reglas de Prompt
     const reglaDeOro = `
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
@@ -123,7 +121,7 @@ ${reglaDeFormato}
       generationConfig: generationConfig
     };
 
-    // USANDO EL FETCH GLOBAL (Nativo de Vercel)
+    // USANDO EL FETCH GLOBAL
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
     if (!googleResponse.ok) {
@@ -149,7 +147,6 @@ ${reglaDeFormato}
     // --- FIN DE MEJORA DE ROBUSTEZ ---
 
     const parts = fullText.split('---SEPARADOR---');
-    // Mantenemos el trim() para limpiar espacios y saltos de línea
     const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe (Error de formato).";
 
     const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
