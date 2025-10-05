@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     const { incomingData } = req.body;
 
-    // --- INICIO: CAPA DE SEGURIDAD ---
+    // --- INICIO: CAPA DE SEGURIDAD (Se mantiene la lógica original) ---
     if (!incomingData || typeof incomingData !== 'object') {
       return res.status(400).json({ error: "Datos de entrada inválidos o ausentes." });
     }
@@ -17,14 +17,18 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD ---
 
-    const apiKey = process.env.GOOGLE_AQUÍ;
+    // --- CORRECCIÓN CLAVE API: Usamos GOOGLE_API_KEY (el nombre estándar)
+    //    Asegúrate de que este sea el nombre correcto en tu configuración de Vercel.
+    const apiKey = process.env.GOOGLE_API_KEY; 
 
     if (!apiKey) {
+      // Usamos el error que definiste para dar una pista clara si falta la clave.
       throw new Error("La variable de entorno GOOGLE_API_KEY no está configurada.");
     }
 
     let masterPrompt;
-    
+
+    // Se mantienen las reglas, son perfectas para guiar a Gemini
     const reglaDeOro = `
 **REGLA DE ORO (LA MÁS IMPORTANTE):** NO INVENTES NINGÚN DATO CLÍNICO NI ESPECULES. Tu credibilidad depende de esto. Si un campo de entrada está vacío, simplemente OMÍTELO en el informe final. Es infinitamente preferible un informe corto y preciso que uno largo e inventado.
 `;
@@ -47,7 +51,6 @@ Debes generar 3 bloques de texto separados.
 Separa el informe principal de las recomendaciones usando una única línea que contenga exactamente: ---SEPARADOR---
 Después de las recomendaciones, añade OBLIGATORIAMENTE otra línea separadora que contenga: ---KEYWORDS---
 `;
-
 
     switch (contexto) {
       case 'urgencias':
@@ -107,48 +110,62 @@ ${reglaDeFormato}
         break;
 
       default:
-        masterPrompt = "Contexto no reconocido.";
+        // Si el contexto no es válido, ya se ha devuelto un 400 antes, pero por seguridad.
+        return res.status(400).json({ error: "Contexto no reconocido." });
     }
-    
+
     const modelName = "gemini-1.5-flash-latest";
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    // --- INICIO: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
     const generationConfig = {
       "temperature": 0.2,
     };
 
-    const requestBody = { 
+    const requestBody = {
       contents: [{ parts: [{ text: masterPrompt }] }],
-      generationConfig: generationConfig // <-- Se añade la nueva configuración aquí
+      generationConfig: generationConfig
     };
-    // --- FIN: MODIFICACIÓN PARA CONTROLAR LA CREATIVIDAD ---
 
     const googleResponse = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
 
     if (!googleResponse.ok) {
+      // Si la API de Google falla, devolvemos su error y estado
       const errorData = await googleResponse.json();
-      res.status(googleResponse.status).json({ error: `Error de la API de Google: ${googleResponse.statusText}` });
-      return;
+      console.error("Error de la API de Google:", errorData);
+      return res.status(googleResponse.status).json({
+        error: `Error de la API de Google: ${googleResponse.statusText}. Revisar logs para más detalles.`,
+        details: errorData.error ? errorData.error.message : 'No se encontraron detalles.'
+      });
     }
 
     const data = await googleResponse.json();
-    const fullText = data.candidates[0].content.parts[0].text;
+
+    // --- MEJORA DE ROBUSTEZ: Verifica la estructura antes de acceder
+    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!fullText) {
+      // Si la respuesta es exitosa (200) pero no hay texto generado, es un fallo de contenido.
+      console.error("Respuesta vacía o incompleta de la API:", data);
+      return res.status(500).json({ error: "La API de Google no devolvió el texto esperado. Posiblemente el prompt fue bloqueado o no generó contenido." });
+    }
+    // --- FIN DE MEJORA DE ROBUSTEZ ---
 
     const parts = fullText.split('---SEPARADOR---');
-    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe.";
-    
-    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
-    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
-    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen.";
+    // Mantenemos el trim() para limpiar espacios y saltos de línea
+    const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe (Error de formato).";
 
-    res.status(200).json({ 
-        report: reportPart,
-        recommendations: recommendationsPart,
-        keywords: keywordsPart
+    const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
+    const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones (Error de formato).";
+    const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen (Error de formato).";
+
+    res.status(200).json({
+      report: reportPart,
+      recommendations: recommendationsPart,
+      keywords: keywordsPart
     });
 
   } catch (error) {
+    // Si cualquier otra cosa falla (network, parsing, etc.), se devuelve un 500 controlado.
     console.error("Error en la función del servidor:", error);
     res.status(500).json({ error: `Error interno en el servidor: ${error.message}` });
   }
