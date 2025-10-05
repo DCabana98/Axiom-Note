@@ -17,14 +17,12 @@ export default async (req, res) => {
     }
     // --- FIN: CAPA DE SEGURIDAD Y VALIDACIÓN DE ENTRADA ---
 
-    // CORRECCIÓN CRÍTICA: La variable de entorno DEBE coincidir con el nombre configurado.
-    // Usamos GEMINI_API_KEY, que fue la que funcionó previamente.
+    // 1. VERIFICACIÓN CRÍTICA DE LA API KEY
     const apiKey = process.env.GEMINI_API_KEY; 
 
     if (!apiKey) {
-      // Usamos el mensaje de error para GOOGLE_API_KEY por familiaridad, pero la variable real es GEMINI_API_KEY
-      // Esto lanza un error 500 con un mensaje más claro.
-      throw new Error("La variable de entorno GEMINI_API_KEY no está configurada. Por favor, revísala.");
+      // Si la clave no existe, lanzamos este error. Este error será capturado por el catch final.
+      throw new Error("ERROR DE CONFIGURACIÓN: La variable de entorno GEMINI_API_KEY no está configurada. Revise su .env o el panel de variables del servidor.");
     }
 
     let masterPrompt;
@@ -90,11 +88,6 @@ ${JSON.stringify(incomingData, null, 2)}
         break;
 
       case 'evolutivo':
-        // No necesitamos estas variables temporales si solo las usamos en el prompt
-        // const resumen = incomingData['evo-resumen'] || 'No reportado.';
-        // const cambios = incomingData['evo-cambios'] || 'No reportado.';
-        // const plan = incomingData['evo-plan'] || 'No reportado.';
-
         masterPrompt = `
 Actúa como un médico de planta redactando una nota de evolución concisa y profesional para una historia clínica. Tu tarea es transformar los siguientes puntos esquemáticos en un párrafo narrativo, fluido, coherente y en texto plano.
 ${reglaDeOro}
@@ -118,9 +111,11 @@ ${reglaDeFormato}
         masterPrompt = "Contexto no reconocido."; 
     }
     
+    // 2. LOGGING PARA DEPURACIÓN
+    console.log(`[DEBUG] Generando informe con contexto: ${contexto}`);
+    // console.log(`[DEBUG] Prompt Master: ${masterPrompt.substring(0, 500)}...`); // Imprime solo los primeros 500 caracteres del prompt
+
     const modelName = "gemini-1.5-flash-latest";
-    // Si la clave no estuviera en las variables de entorno, la URL no funcionaría, 
-    // pero aquí usamos la variable 'apiKey' que ya está saneada.
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`; 
 
     const generationConfig = {
@@ -139,11 +134,10 @@ ${reglaDeFormato}
     });
 
     if (!googleResponse.ok) {
-      // Si la API de Google devuelve un código de error HTTP (4xx o 5xx)
+      // 3. MANEJO DE ERRORES DE LA API DE GOOGLE (4xx, 5xx)
       const errorData = await googleResponse.json();
       const detailedMessage = errorData.error?.message || googleResponse.statusText;
       
-      // Retornar un error detallado de la API de Google
       return res.status(googleResponse.status).json({ 
           error: `Error de la API de Google (${googleResponse.status}): ${detailedMessage}` 
       });
@@ -151,8 +145,7 @@ ${reglaDeFormato}
 
     const data = await googleResponse.json();
     
-    // --- CORRECCIÓN CRÍTICA: Validación de Respuesta de Gemini ---
-    // Chequear si el modelo generó contenido. Si no, significa que fue bloqueado (e.g., por filtro de seguridad).
+    // 4. VALIDACIÓN DE RESPUESTA DE GEMINI (Contenido Bloqueado/Vacío)
     const candidate = data.candidates?.[0];
     const fullText = candidate?.content?.parts?.[0]?.text;
 
@@ -165,20 +158,17 @@ ${reglaDeFormato}
         }
 
         return res.status(500).json({
-            error: `La generación del informe fue rechazada. ${blockReason} Revise los datos de entrada.`
+            error: `La generación del informe fue rechazada por la API. ${blockReason} Revise los datos de entrada.`
         });
     }
-    // --- FIN CORRECCIÓN CRÍTICA ---
 
+    // 5. PARSEO DEL TEXTO GENERADO
     const parts = fullText.split('---SEPARADOR---');
     const reportPart = parts[0] ? parts[0].trim() : "No se pudo generar el informe principal.";
     
     const recommendationsAndKeywords = parts[1] ? parts[1].split('---KEYWORDS---') : [];
     const recommendationsPart = recommendationsAndKeywords[0] ? recommendationsAndKeywords[0].trim() : "No se pudieron generar las recomendaciones.";
     const keywordsPart = recommendationsAndKeywords[1] ? recommendationsAndKeywords[1].trim() : "No se pudo generar el resumen (Keywords).";
-
-    // En el caso de "evolutivo", la "recomendación" y el "informe" pueden fusionarse si el LLM no usa el separador.
-    // Aunque forzamos los separadores, es mejor que las partes reflejen lo que realmente hace cada prompt.
 
     res.status(200).json({ 
         report: reportPart,
@@ -187,8 +177,9 @@ ${reglaDeFormato}
     });
 
   } catch (error) {
-    console.error("Error en la función del servidor:", error);
-    // Aseguramos que el error.message sea lo más informativo posible.
-    res.status(500).json({ error: `Error interno en el servidor: Fallo durante la ejecución. Mensaje: ${error.message}` });
+    // 6. CAPTURA DE CUALQUIER OTRO ERROR INTERNO (Errores síncronos, errores de red, etc.)
+    console.error("[ERROR CRÍTICO DEL SERVIDOR]", error);
+    // IMPORTANTE: Devolvemos el mensaje exacto de la excepción para identificar la causa.
+    res.status(500).json({ error: `Error interno al generar el informe. DETALLE: ${error.message}` });
   }
 };
